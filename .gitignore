@@ -1,0 +1,12 @@
+# Non committare mai file con credenziali reali
+.env
+.env.local
+secrets.js
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

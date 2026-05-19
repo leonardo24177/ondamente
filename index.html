@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OndaMente — L'assistente universitario che capisce il tuo modo di imparare</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #0c0b14;
+    --ink2: #0a1a14;
+    --ink3: #0F2318;
+    --surface: #f7f5f2;
+    --surface2: #f0fdf9;
+    --white: #ffffff;
+    --violet: #1D9E75;
+    --violet2: #0F6E56;
+    --violet-light: #e1f5ee;
+    --teal: #4ecdc4;
+    --teal-light: #e0f7f5;
+    --amber: #f7b267;
+    --amber-light: #fef3e2;
+    --success: #5ec87a;
+    --success-light: #e8f8ed;
+    --text: #0c0b14;
+    --muted: #4a5568;
+    --muted2: #718096;
+    --border: rgba(12,11,20,0.1);
+    --border2: rgba(12,11,20,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 56px;
+    background: rgba(247,245,242,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border2);
+    transition: all 0.3s;
+  }
+
+  .nav-logo { display: flex; align-items: center; gap: 10px; }
+  .nav-logo-mark {
+    width: 34px; height: 34px;
+    background: var(--ink);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  .nav-logo-name { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
+  .nav-dsa-pill {
+    background: rgba(29,158,117,0.12);
+    color: var(--violet2);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px; border-radius: 100px;
+    border: 1px solid rgba(29,158,117,0.25);
+  }
+
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a { color: var(--muted); font-size: 14px; font-weight: 500; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--ink); color: var(--surface);
+    padding: 10px 22px; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .nav-cta:hover { background: var(--violet2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(15,110,86,0.3); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 120px 48px 80px;
+    position: relative; overflow: hidden; text-align: center;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 60% at 15% 35%, rgba(29,158,117,0.09) 0%, transparent 65%),
+      radial-gradient(ellipse 45% 50% at 85% 65%, rgba(78,205,196,0.09) 0%, transparent 65%),
+      radial-gradient(ellipse 35% 40% at 55% 90%, rgba(247,178,103,0.07) 0%, transparent 65%);
+  }
+
+  /* Decorative puzzle piece */
+  .hero-deco {
+    position: absolute;
+    border-radius: 18px;
+    opacity: 0.06;
+    background: var(--violet);
+    animation: floatDeco 8s ease-in-out infinite;
+  }
+  .hero-deco:nth-child(1) { width: 60px; height: 60px; top: 18%; left: 8%; animation-delay: 0s; }
+  .hero-deco:nth-child(2) { width: 40px; height: 40px; top: 30%; left: 3%; animation-delay: 2s; background: var(--teal); }
+  .hero-deco:nth-child(3) { width: 50px; height: 50px; top: 22%; right: 9%; animation-delay: 1s; background: var(--amber); }
+  .hero-deco:nth-child(4) { width: 30px; height: 30px; top: 42%; right: 4%; animation-delay: 3s; background: var(--teal); }
+  @keyframes floatDeco {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(6deg); }
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 100px; padding: 6px 16px 6px 8px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s ease both;
+    box-shadow: 0 2px 12px rgba(12,11,20,0.06);
+  }
+  .hero-eyebrow-badge {
+    background: var(--violet); color: #fff;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    padding: 3px 10px; border-radius: 100px; text-transform: uppercase;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(46px, 6.5vw, 84px);
+    font-weight: 900; line-height: 1.02;
+    color: var(--ink); max-width: 860px;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .hero h1 .hl-violet { color: var(--violet2); font-style: italic; }
+  .hero h1 .hl-teal { color: var(--teal); }
+
+  .hero-lead {
+    font-size: clamp(16px, 1.8vw, 20px);
+    color: var(--muted); max-width: 580px;
+    margin-top: 22px; line-height: 1.65; font-weight: 300;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-profiles {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; margin-top: 24px; flex-wrap: wrap;
+    animation: fadeUp 0.7s 0.25s ease both;
+  }
+  .hero-profile-tag {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 100px; padding: 5px 14px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .hero-profile-tag.dsa-tag { border-color: rgba(29,158,117,0.3); color: var(--violet2); background: var(--violet-light); }
+
+  .hero-actions {
+    display: flex; gap: 14px; align-items: center;
+    margin-top: 44px; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  .btn-main {
+    background: var(--ink); color: #fff;
+    padding: 16px 36px; border-radius: 12px;
+    font-size: 16px; font-weight: 700;
+    text-decoration: none; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-main:hover { background: var(--violet2); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(15,110,86,0.3); }
+
+  .btn-ghost {
+    color: var(--muted); font-size: 15px; font-weight: 500;
+    text-decoration: none; display: inline-flex; align-items: center;
+    gap: 6px; padding: 16px 8px; transition: all 0.2s;
+  }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* ── MOCKUP CHAT ── */
+  .hero-mockup {
+    margin-top: 72px; max-width: 780px; width: 100%;
+    background: var(--ink2);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 40px 100px rgba(12,11,20,0.4), 0 0 0 1px rgba(139,111,205,0.12);
+    overflow: hidden;
+    animation: fadeUp 0.9s 0.4s ease both;
+  }
+
+  .mockup-top {
+    background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .mdots { display: flex; gap: 6px; }
+  .mdot { width: 10px; height: 10px; border-radius: 50%; }
+  .mdot:nth-child(1) { background: #e07070; }
+  .mdot:nth-child(2) { background: #e0c870; }
+  .mdot:nth-child(3) { background: #70e090; }
+  .mtitle { font-size: 12px; color: rgba(255,255,255,0.3); flex: 1; text-align: center; font-family: 'DM Mono', monospace; }
+
+  .mockup-chat { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+
+  .mc-msg { display: flex; gap: 10px; }
+  .mc-msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .mc-ava {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .mc-ava.ai { background: linear-gradient(135deg, var(--violet), var(--teal)); }
+  .mc-ava.usr { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); }
+  .mc-bubble {
+    padding: 10px 14px; border-radius: 12px;
+    font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6;
+    max-width: 380px;
+  }
+  .mc-bubble.ai { background: rgba(255,255,255,0.07); border-top-left-radius: 3px; }
+  .mc-bubble.usr { background: rgba(29,158,117,0.25); border-top-right-radius: 3px; color: rgba(255,255,255,0.9); }
+  .mc-bubble strong { color: var(--amber); }
+  .mc-bubble .dsa-note {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(78,205,196,0.12); border: 1px solid rgba(78,205,196,0.2);
+    border-radius: 6px; padding: 3px 8px; margin-top: 6px;
+    font-size: 11px; color: var(--teal); font-weight: 600;
+  }
+
+  /* ── TRUST STRIP ── */
+  .trust-strip {
+    background: var(--white); border-top: 1px solid var(--border2); border-bottom: 1px solid var(--border2);
+    padding: 20px 48px; display: flex; align-items: center; justify-content: center;
+    gap: 40px; flex-wrap: wrap;
+  }
+  .trust-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .trust-ico { font-size: 18px; }
+
+  /* ── SECTIONS ── */
+  .sec { padding: 96px 56px; max-width: 1140px; margin: 0 auto; }
+  .sec-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--violet2); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sec-label::before { content: ''; width: 24px; height: 2px; background: var(--violet2); display: block; }
+  .sec-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(34px, 3.5vw, 52px);
+    font-weight: 900; line-height: 1.08; max-width: 640px; color: var(--ink);
+  }
+  .sec-title em { font-style: italic; color: var(--violet2); }
+  .sec-title .tl { color: var(--teal); font-style: italic; }
+  .sec-sub { color: var(--muted); font-size: 17px; line-height: 1.65; max-width: 520px; margin-top: 16px; font-weight: 300; }
+
+  /* ── PROBLEMA / STORYTELLING ── */
+  .story-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    margin-top: 56px;
+  }
+  .story-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .story-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(12,11,20,0.08); }
+  .story-card.problem { border-color: rgba(224,112,112,0.25); background: #fff9f9; }
+  .story-card.solution { border-color: rgba(29,158,117,0.25); background: linear-gradient(135deg, #f0fdf9, #f2fbfa); }
+  .story-card.solution::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--violet), var(--teal));
+  }
+  .story-ico { font-size: 36px; margin-bottom: 16px; }
+  .story-card h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .story-card p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+  .story-quote {
+    background: var(--ink); border-radius: 16px; padding: 40px;
+    margin-top: 24px; grid-column: 1 / -1;
+    display: flex; gap: 32px; align-items: center;
+  }
+  .story-quote-text {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: clamp(18px, 2vw, 24px); line-height: 1.45;
+    color: rgba(255,255,255,0.9); flex: 1;
+  }
+  .story-quote-text strong { color: var(--amber); font-style: normal; }
+  .story-quote-meta { flex-shrink: 0; text-align: right; }
+  .story-quote-name { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.8); }
+  .story-quote-role { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+  /* ── DSA PROFILES ── */
+  .profiles-sec { background: var(--ink); padding: 96px 56px; position: relative; overflow: hidden; }
+  .profiles-sec-inner { max-width: 1140px; margin: 0 auto; }
+  .profiles-sec .sec-label { color: var(--teal); }
+  .profiles-sec .sec-label::before { background: var(--teal); }
+  .profiles-sec .sec-title { color: rgba(255,255,255,0.95); max-width: 720px; }
+  .profiles-sec .sec-sub { color: rgba(255,255,255,0.5); }
+
+  .profiles-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px; margin-top: 56px;
+  }
+  .profile-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 28px;
+    transition: all 0.3s;
+  }
+  .profile-card:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(139,111,205,0.4);
+    transform: translateY(-4px);
+  }
+  .profile-card-ico { font-size: 32px; margin-bottom: 14px; }
+  .profile-card-name {
+    font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700;
+    color: rgba(255,255,255,0.9); margin-bottom: 8px;
+  }
+  .profile-card-desc { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.65; margin-bottom: 16px; }
+  .profile-adaptations { display: flex; flex-direction: column; gap: 6px; }
+  .adapt-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px;
+  }
+  .adapt-pill.vl { background: rgba(139,111,205,0.2); color: #b99ef0; }
+  .adapt-pill.tl { background: rgba(78,205,196,0.15); color: #7ee8e4; }
+  .adapt-pill.am { background: rgba(247,178,103,0.15); color: #f9c87a; }
+
+  .miur-note {
+    margin-top: 48px; background: rgba(78,205,196,0.08); border: 1px solid rgba(78,205,196,0.2);
+    border-radius: 14px; padding: 24px 28px;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+  .miur-note-ico { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+  .miur-note-text { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+  .miur-note-text strong { color: var(--teal); }
+
+  /* ── FUNZIONALITÀ ── */
+  .features-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 56px;
+  }
+  .feat-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .feat-card:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(12,11,20,0.08); }
+  .feat-card.featured {
+    background: var(--ink); color: var(--white);
+    grid-row: span 2;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    min-height: 340px;
+  }
+  .feat-card.featured::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 30% 30%, rgba(139,111,205,0.35), transparent 70%);
+    pointer-events: none;
+  }
+  .feat-card-ico { font-size: 28px; margin-bottom: 14px; }
+  .feat-card h3 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .feat-card p { color: var(--muted); font-size: 14px; line-height: 1.65; }
+  .feat-card.featured p { color: rgba(255,255,255,0.55); }
+  .feat-card.featured h3 { color: var(--white); font-size: 22px; }
+  .feat-dsa-badge {
+    position: absolute; top: 20px; right: 20px;
+    background: rgba(78,205,196,0.15); border: 1px solid rgba(78,205,196,0.3);
+    color: var(--teal); font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 100px;
+  }
+  .feat-big-num {
+    font-family: 'Fraunces', serif; font-size: 80px; font-weight: 900;
+    color: rgba(255,255,255,0.07); line-height: 1; margin-bottom: -16px;
+    position: relative; z-index: 1;
+  }
+
+  /* ── COME FUNZIONA ── */
+  .steps-sec { background: var(--surface2); padding: 96px 56px; }
+  .steps-inner { max-width: 1140px; margin: 0 auto; }
+  .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 60px; position: relative; }
+  .steps-grid::before {
+    content: ''; position: absolute;
+    top: 32px; left: calc(12.5% + 4px); right: calc(12.5% + 4px); height: 2px;
+    background: linear-gradient(90deg, var(--violet), var(--teal));
+    opacity: 0.25;
+  }
+  .step-item { text-align: center; padding: 0 20px; }
+  .step-num-wrap {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--white); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 24px;
+    transition: all 0.3s; position: relative;
+  }
+  .step-item:hover .step-num-wrap { border-color: var(--violet); box-shadow: 0 0 0 6px rgba(29,158,117,0.1); }
+  .step-num {
+    position: absolute; top: -8px; right: -8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--violet); color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-item h3 { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .step-item p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── PRICING ── */
+  .pricing-sec { padding: 96px 56px; }
+  .pricing-inner { max-width: 1140px; margin: 0 auto; }
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 24px; margin-top: 56px;
+  }
+  .pricing-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 32px; position: relative;
+    transition: all 0.3s;
+  }
+  .pricing-card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(12,11,20,0.1); }
+  .pricing-card.pop {
+    background: var(--ink); border-color: transparent;
+    box-shadow: 0 16px 48px rgba(12,11,20,0.3);
+  }
+  .pricing-card.pop::before {
+    content: '⭐ Più scelto';
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--violet); color: #fff;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+    padding: 4px 16px; border-radius: 100px; white-space: nowrap;
+  }
+  .plan-head-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 10px; }
+  .plan-name { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 900; margin-bottom: 6px; }
+  .pricing-card.pop .plan-name { color: #fff; }
+  .plan-tagline { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+  .pricing-card.pop .plan-tagline { color: rgba(255,255,255,0.45); }
+  .plan-price-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 28px; }
+  .plan-price { font-family: 'Fraunces', serif; font-size: 52px; font-weight: 900; line-height: 1; }
+  .pricing-card.pop .plan-price { color: #fff; }
+  .plan-cur { font-size: 20px; font-weight: 600; opacity: 0.5; }
+  .plan-per { font-size: 13px; opacity: 0.45; align-self: flex-end; margin-bottom: 4px; }
+  .plan-feats { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+  .plan-feats li { font-size: 14px; display: flex; gap: 8px; align-items: flex-start; color: var(--muted); }
+  .pricing-card.pop .plan-feats li { color: rgba(255,255,255,0.6); }
+  .plan-feats li::before { content: '✓'; font-weight: 800; color: var(--success); flex-shrink: 0; }
+  .plan-feats li.dsa-feat::before { color: var(--teal); }
+  .plan-btn {
+    display: block; width: 100%; text-align: center;
+    padding: 14px; border-radius: 12px;
+    font-size: 15px; font-weight: 700; text-decoration: none;
+    transition: all 0.2s; cursor: pointer; border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pricing-card:not(.pop) .plan-btn { background: rgba(12,11,20,0.06); color: var(--ink); }
+  .pricing-card:not(.pop) .plan-btn:hover { background: rgba(12,11,20,0.12); }
+  .pricing-card.pop .plan-btn { background: var(--violet); color: #fff; }
+  .pricing-card.pop .plan-btn:hover { background: #27b884; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(29,158,117,0.4); }
+  .plan-note { font-size: 12px; color: var(--muted2); text-align: center; margin-top: 10px; }
+  .pricing-card.pop .plan-note { color: rgba(255,255,255,0.3); }
+
+  /* ── SUPPORTO LEGALE ── */
+  .legal-sec { background: linear-gradient(135deg, var(--violet-light), var(--teal-light)); padding: 80px 56px; }
+  .legal-inner { max-width: 1140px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .legal-title { font-family: 'Fraunces', serif; font-size: clamp(28px, 3vw, 44px); font-weight: 900; line-height: 1.1; color: var(--ink); margin-bottom: 16px; }
+  .legal-desc { color: var(--muted); font-size: 16px; line-height: 1.7; font-weight: 300; }
+  .legal-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .legal-pill {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 100px; padding: 8px 18px;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .legal-cards { display: flex; flex-direction: column; gap: 14px; }
+  .legal-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 22px;
+    display: flex; gap: 14px; align-items: flex-start;
+    transition: all 0.2s;
+  }
+  .legal-card:hover { box-shadow: 0 8px 24px rgba(12,11,20,0.08); transform: translateX(4px); }
+  .legal-card-ico { font-size: 22px; flex-shrink: 0; }
+  .legal-card-head { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .legal-card-body { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  /* ── TESTIMONIANZE ── */
+  .testi-sec { padding: 96px 56px; background: var(--white); }
+  .testi-inner { max-width: 1140px; margin: 0 auto; }
+  .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+  .testi-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 28px; position: relative;
+  }
+  .testi-stars { color: var(--amber); font-size: 15px; letter-spacing: 2px; margin-bottom: 14px; }
+  .testi-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(29,158,117,0.1); color: var(--violet2);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 100px; margin-bottom: 12px;
+  }
+  .testi-text { font-size: 14px; color: var(--muted); line-height: 1.7; font-style: italic; margin-bottom: 20px; }
+  .testi-author { display: flex; gap: 10px; align-items: center; }
+  .testi-ava { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .testi-name { font-size: 13px; font-weight: 700; }
+  .testi-role { font-size: 12px; color: var(--muted2); }
+
+  /* ── FAQ ── */
+  .faq-sec { padding: 96px 56px; background: var(--surface2); }
+  .faq-inner { max-width: 1140px; margin: 0 auto; display: grid; grid-template-columns: 1fr 2fr; gap: 80px; align-items: start; }
+  .faq-list { display: flex; flex-direction: column; gap: 0; }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 20px 0; cursor: pointer; }
+  .faq-q { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; font-weight: 600; font-size: 15px; }
+  .faq-ico { font-size: 20px; color: var(--muted2); transition: all 0.2s; flex-shrink: 0; margin-top: 1px; }
+  .faq-item.open .faq-ico { transform: rotate(45deg); color: var(--violet2); }
+  .faq-a { display: none; font-size: 14px; color: var(--muted); line-height: 1.7; padding-top: 14px; }
+  .faq-item.open .faq-a { display: block; }
+
+  /* ── FINAL CTA ── */
+  .final-sec {
+    background: var(--ink); padding: 100px 56px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .final-sec::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 50% 70% at 15% 50%, rgba(29,158,117,0.2), transparent 60%),
+      radial-gradient(ellipse 40% 60% at 85% 40%, rgba(78,205,196,0.15), transparent 60%);
+    pointer-events: none;
+  }
+  .final-label { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--teal); margin-bottom: 20px; }
+  .final-h { font-family: 'Fraunces', serif; font-size: clamp(38px, 5vw, 68px); font-weight: 900; color: #fff; line-height: 1.05; margin-bottom: 18px; position: relative; z-index: 1; }
+  .final-h em { font-style: italic; color: var(--amber); }
+  .final-sub { font-size: 18px; color: rgba(255,255,255,0.5); max-width: 480px; margin: 0 auto 44px; line-height: 1.6; font-weight: 300; position: relative; z-index: 1; }
+  .final-btn {
+    background: var(--amber); color: var(--ink);
+    padding: 18px 52px; border-radius: 14px;
+    font-size: 17px; font-weight: 800; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s; position: relative; z-index: 1;
+  }
+  .final-btn:hover { background: #f9c87a; transform: translateY(-3px); box-shadow: 0 12px 36px rgba(247,178,103,0.4); }
+  .final-privacy { font-size: 13px; color: rgba(255,255,255,0.25); margin-top: 20px; position: relative; z-index: 1; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: rgba(12,11,20,0.98);
+    padding: 36px 56px; color: rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px; font-size: 13px;
+  }
+  footer a { color: rgba(255,255,255,0.35); text-decoration: none; }
+  footer a:hover { color: rgba(255,255,255,0.7); }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(12,11,20,0.75); backdrop-filter: blur(10px);
+    z-index: 200; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 20px;
+    padding: 44px; width: 100%; max-width: 460px; margin: 20px;
+    animation: fadeUp 0.3s ease; position: relative;
+  }
+  .modal-close { position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); line-height: 1; }
+  .modal h2 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 900; margin-bottom: 6px; }
+  .modal-plan-tag {
+    display: inline-block; background: var(--violet-light); color: var(--violet2);
+    font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 100px; margin-bottom: 28px;
+  }
+  .mf { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .mf label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+  .mf input {
+    padding: 13px 15px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--text);
+    background: var(--surface); outline: none; transition: border-color 0.2s;
+  }
+  .mf input:focus { border-color: var(--violet); }
+  .mf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .modal-btn {
+    width: 100%; background: var(--ink); color: #fff;
+    border: none; padding: 15px; border-radius: 12px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.2s; margin-top: 4px;
+  }
+  .modal-btn:hover { background: var(--violet2); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,110,86,0.3); }
+  .modal-secure { text-align: center; font-size: 12px; color: var(--muted2); margin-top: 14px; }
+  .modal-success { display: none; text-align: center; padding: 24px 0; }
+  .modal-success-ico { font-size: 60px; margin-bottom: 16px; animation: bounceIn 0.5s ease; }
+  @keyframes bounceIn { 0% { transform: scale(0); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  .modal-success h3 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 900; margin-bottom: 10px; }
+  .modal-success p { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 22px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .sec { padding: 64px 24px; }
+    .steps-sec { padding: 64px 24px; }
+    .pricing-sec { padding: 64px 24px; }
+    .testi-sec { padding: 64px 24px; }
+    .faq-sec { padding: 64px 24px; }
+    .legal-sec { padding: 64px 24px; }
+    .profiles-sec { padding: 64px 24px; }
+    .final-sec { padding: 72px 24px; }
+    footer { padding: 28px 24px; }
+    .story-grid { grid-template-columns: 1fr; }
+    .story-quote { flex-direction: column; gap: 20px; }
+    .story-quote-meta { text-align: left; }
+    .features-layout { grid-template-columns: 1fr; }
+    .feat-card.featured { grid-row: auto; min-height: auto; }
+    .steps-grid { grid-template-columns: 1fr 1fr; }
+    .steps-grid::before { display: none; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .testi-grid { grid-template-columns: 1fr; }
+    .faq-inner { grid-template-columns: 1fr; gap: 32px; }
+    .legal-inner { grid-template-columns: 1fr; gap: 40px; }
+    .trust-strip { padding: 20px 24px; gap: 20px; }
+  }
+  @media (max-width: 540px) {
+    .steps-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" style="flex-shrink:0">
+      <rect width="32" height="32" rx="8" fill="#0c0b14"/>
+      <text x="2" y="27" font-family="Fraunces, serif" font-size="29" font-weight="900" fill="#ffffff" letter-spacing="-1">O</text>
+      <path d="M4 19 C8 10, 12 10, 16 15 C20 20, 24 20, 28 15" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-logo-name">OndaMente</span>
+    <span class="nav-dsa-pill">DSA</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#profili">Profili DSA</a></li>
+    <li><a href="#funzionalita">Funzionalità</a></li>
+    <li><a href="#come-funziona">Come funziona</a></li>
+    <li><a href="#prezzi">Prezzi</a></li>
+  </ul>
+  <a href="assistente.html" class="nav-cta">Inizia gratis →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-deco"></div>
+  <div class="hero-deco"></div>
+  <div class="hero-deco"></div>
+  <div class="hero-deco"></div>
+
+  <div class="hero-eyebrow">
+    <span class="hero-eyebrow-badge">Nuovo</span>
+    Adattato alle linee guida MIUR per DSA
+  </div>
+
+  <h1>Ogni mente ha<br>la sua <span class="hl-violet">onda.</span><br><span class="hl-teal">La tua è qui.</span></h1>
+
+  <p class="hero-lead">OndaMente è l'assistente universitario che si adatta a come <em>tu</em> impari — non il contrario. Dislessia, ADHD, Discalculia, BES: ogni risposta è costruita intorno al tuo profilo.</p>
+
+  <div class="hero-profiles">
+    <span class="hero-profile-tag dsa-tag">🧩 Dislessia</span>
+    <span class="hero-profile-tag dsa-tag">⚡ ADHD</span>
+    <span class="hero-profile-tag dsa-tag">🔢 Discalculia</span>
+    <span class="hero-profile-tag dsa-tag">✏️ Disortografia</span>
+    <span class="hero-profile-tag dsa-tag">🌱 BES</span>
+    <span class="hero-profile-tag" style="color:var(--muted)">Tutti gli studenti</span>
+  </div>
+
+  <div class="hero-actions">
+    <a href="assistente.html" class="btn-main">🚀 Prova gratis — nessuna carta</a>
+    <a href="#profili" class="btn-ghost">Scopri i profili DSA →</a>
+  </div>
+
+  <div class="hero-mockup">
+    <div class="mockup-top">
+      <div class="mdots"><div class="mdot"></div><div class="mdot"></div><div class="mdot"></div></div>
+      <div class="mtitle">OndaMente — Assistente adattivo</div>
+    </div>
+    <div class="mockup-chat">
+      <div class="mc-msg">
+        <div class="mc-ava ai">🧩</div>
+        <div class="mc-bubble ai">
+          <strong>Argomento: Obbligazioni nel diritto privato</strong><br><br>
+          Proviamo così:<br><br>
+          <strong>Obbligazione</strong> = un vincolo legale tra due persone.<br>
+          Chi deve fare qualcosa → <strong>debitore</strong>.<br>
+          Chi ha diritto a riceverlo → <strong>creditore</strong>.<br><br>
+          Semplice, no? Qual è la parte che trovi più difficile? 😊
+          <div class="dsa-note">🧩 Modalità Dislessia attiva · frasi brevi</div>
+        </div>
+      </div>
+      <div class="mc-msg user">
+        <div class="mc-ava usr">👤</div>
+        <div class="mc-bubble usr">Ok! Guidami passo dopo passo sulla mora del debitore</div>
+      </div>
+      <div class="mc-msg">
+        <div class="mc-ava ai">🧩</div>
+        <div class="mc-bubble ai">
+          Perfetto! Partiamo da zero, un passo alla volta.<br><br>
+          <strong>Passo 1 — Cosa si intende per mora?</strong><br>
+          Mora = ritardo del debitore nel fare quello che doveva.<br><br>
+          Sei già un po' in anticipo: sai già cos'è il debitore! ✅
+          <div class="dsa-note">⚡ Modalità Scaffolding · un concetto alla volta</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-item"><span class="trust-ico">📋</span>Conforme alle linee guida MIUR</div>
+  <div class="trust-item"><span class="trust-ico">🔒</span>Dati privati, mai condivisi</div>
+  <div class="trust-item"><span class="trust-ico">📚</span>Carica il tuo libro universitario</div>
+  <div class="trust-item"><span class="trust-ico">🎓</span>Qualsiasi facoltà italiana</div>
+  <div class="trust-item"><span class="trust-ico">🔊</span>Sintesi vocale integrata</div>
+</div>
+
+<!-- PROBLEMA / STORYTELLING -->
+<section style="background: var(--white); padding: 0;">
+  <div class="sec" id="storia">
+    <div class="sec-label">Il problema che non viene detto</div>
+    <div class="sec-title">Il sistema universitario<br>non è <em>progettato</em> per te</div>
+    <p class="sec-sub">Ma il modo in cui apprendi non è un difetto. È semplicemente diverso — e diverso merita strumenti diversi.</p>
+    <div class="story-grid">
+      <div class="story-card problem reveal">
+        <div class="story-ico">😮‍💨</div>
+        <h3>Il vecchio modo di studiare</h3>
+        <p>Manuali da 600 pagine. Spiegazioni lunghe e dense. Nessuno che capisce se stai seguendo. L'ansia da esame che aumenta ogni giorno. Sentirsi "lenti" o "incapaci" quando in realtà il problema è solo il formato.</p>
+      </div>
+      <div class="story-card solution reveal" style="transition-delay: 0.1s;">
+        <div class="story-ico">🧩</div>
+        <h3>Come studia OndaMente</h3>
+        <p>Frasi brevi per la dislessia. Chunk numerati per l'ADHD. Analogie verbali per la discalculia. Scaffolding socratico per chi ha bisogno di procedere un passo alla volta. Rinforzo positivo dopo ogni risposta, anche parziale.</p>
+      </div>
+      <div class="story-quote reveal" style="transition-delay: 0.15s;">
+        <div class="story-quote-text">
+          "Ho caricato il libro di Pedagogia e per la prima volta ho capito <strong>davvero</strong> cosa stavo studiando — non solo memorizzato."
+        </div>
+        <div class="story-quote-meta">
+          <div class="story-quote-name">Chiara V.</div>
+          <div class="story-quote-role">Scienze della Formazione · Dislessia + ADHD</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROFILI DSA -->
+<section class="profiles-sec" id="profili">
+  <div class="profiles-sec-inner">
+    <div class="sec-label">Profili supportati</div>
+    <div class="sec-title">Non esiste un solo modo<br>di avere un DSA</div>
+    <p class="sec-sub" style="color:rgba(255,255,255,0.45);">Ogni profilo attiva adattamenti specifici e fondati sulle linee guida MIUR. Puoi selezionarne anche più di uno.</p>
+    <div class="profiles-grid">
+      <div class="profile-card reveal">
+        <div class="profile-card-ico">📖</div>
+        <div class="profile-card-name">Dislessia</div>
+        <div class="profile-card-desc">Difficoltà nella decodifica del testo scritto. L'assistente privilegia la comprensione sulla forma.</div>
+        <div class="profile-adaptations">
+          <span class="adapt-pill vl">✦ Frasi max 15-20 parole</span>
+          <span class="adapt-pill tl">✦ Grassetto sui termini chiave</span>
+          <span class="adapt-pill am">✦ Concetto = spiegazione semplice</span>
+        </div>
+      </div>
+      <div class="profile-card reveal" style="transition-delay:0.07s">
+        <div class="profile-card-ico">✏️</div>
+        <div class="profile-card-name">Disortografia</div>
+        <div class="profile-card-desc">Errori ortografici non penalizzati. Una risposta concettualmente corretta è una risposta corretta.</div>
+        <div class="profile-adaptations">
+          <span class="adapt-pill vl">✦ Valuta contenuti, non forma</span>
+          <span class="adapt-pill tl">✦ Struttura con titoli brevi</span>
+          <span class="adapt-pill am">✦ Elenchi invece di prosa densa</span>
+        </div>
+      </div>
+      <div class="profile-card reveal" style="transition-delay:0.14s">
+        <div class="profile-card-ico">⚡</div>
+        <div class="profile-card-name">ADHD</div>
+        <div class="profile-card-desc">Difficoltà di attenzione sostenuta. Ogni risposta inizia con il tema in 4 parole, poi procede a chunk.</div>
+        <div class="profile-adaptations">
+          <span class="adapt-pill vl">✦ "Stiamo parlando di: [tema]"</span>
+          <span class="adapt-pill tl">✦ Chunk numerati, max 5 righe</span>
+          <span class="adapt-pill am">✦ Domanda di controllo dopo ogni spiegazione</span>
+        </div>
+      </div>
+      <div class="profile-card reveal" style="transition-delay:0.21s">
+        <div class="profile-card-ico">🔢</div>
+        <div class="profile-card-name">Discalculia</div>
+        <div class="profile-card-desc">Difficoltà con numeri e simboli. Ogni errore viene analizzato per tipo: procedurale, semantico o visuospaziale.</div>
+        <div class="profile-adaptations">
+          <span class="adapt-pill vl">✦ Sequenze verbali: Primo → Poi → Infine</span>
+          <span class="adapt-pill tl">✦ Analisi tipo errore (MIUR 4.3.3)</span>
+          <span class="adapt-pill am">✦ Analogie qualitative, non quantitative</span>
+        </div>
+      </div>
+      <div class="profile-card reveal" style="transition-delay:0.28s">
+        <div class="profile-card-ico">🌱</div>
+        <div class="profile-card-name">BES</div>
+        <div class="profile-card-desc">Bisogni Educativi Speciali generici. Un set flessibile di adattamenti su misura per il tuo percorso.</div>
+        <div class="profile-adaptations">
+          <span class="adapt-pill vl">✦ Supporto adattivo personalizzato</span>
+          <span class="adapt-pill tl">✦ Rinforzo positivo sistematico</span>
+          <span class="adapt-pill am">✦ Ritmi e tempi rispettati</span>
+        </div>
+      </div>
+      <div class="profile-card reveal" style="transition-delay:0.35s; border-color:rgba(247,178,103,0.25);">
+        <div class="profile-card-ico">🔗</div>
+        <div class="profile-card-name">Comorbilità</div>
+        <div class="profile-card-desc">Più profili insieme generano una difficoltà superiore alla somma dei singoli (MIUR 1.4). OndaMente lo sa.</div>
+        <div class="profile-adaptations">
+          <span class="adapt-pill vl">✦ Frasi ulteriormente ridotte</span>
+          <span class="adapt-pill tl">✦ Max 3 concetti per risposta</span>
+          <span class="adapt-pill am">✦ Tutti gli adattamenti combinati</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="miur-note reveal">
+      <div class="miur-note-ico">📋</div>
+      <div class="miur-note-text">
+        Gli adattamenti di OndaMente seguono le <strong>Linee guida MIUR per il diritto allo studio degli alunni e degli studenti con disturbi specifici di apprendimento</strong>. Ogni profilo attiva regole didattiche specifiche: valutazione dei contenuti separata dalla forma (MIUR 4.3.1), analisi degli errori per tipo (MIUR 4.3.3), attenzione alla sicurezza psicologica e all'autostima (MIUR 5), gestione della comorbilità (MIUR 1.4).
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNZIONALITÀ -->
+<section class="white" style="padding: 0;">
+  <div class="sec" id="funzionalita">
+    <div class="sec-label">Funzionalità</div>
+    <div class="sec-title">Tutto quello che serve.<br><em>Adattato</em> a te.</div>
+    <div class="features-layout">
+      <div class="feat-card featured reveal">
+        <div class="feat-big-num">DSA</div>
+        <div class="feat-card-ico">🔊</div>
+        <h3>Modalità Audio con sintesi vocale</h3>
+        <p>Frasi brevissime, punteggiatura densa, zero tabelle. Seleziona voce e velocità di lettura. L'assistente legge ogni risposta ad alta voce — pensato per chi usa la sintesi vocale come strumento compensativo.</p>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.07s">
+        <span class="feat-dsa-badge">DSA</span>
+        <div class="feat-card-ico">🧩</div>
+        <h3>Guida passo-passo (scaffolding)</h3>
+        <p>L'assistente non dà mai la risposta completa subito. Chiede cosa sai già, costruisce un passo alla volta, rinforza ogni risposta parziale. Metodo socratico, adattato al DSA.</p>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.14s">
+        <div class="feat-card-ico">🎯</div>
+        <h3>Quiz personalizzati</h3>
+        <p>Una domanda alla volta — mai più. Valutazione dei contenuti, non della forma. Rinforzo positivo dopo ogni risposta, anche sbagliata.</p>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.07s">
+        <div class="feat-card-ico">📄</div>
+        <h3>Carica il tuo libro</h3>
+        <p>Carica il PDF del manuale universitario e l'assistente studierà da quello. Le spiegazioni sono ancorate al testo che devi portare all'esame.</p>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.14s">
+        <div class="feat-card-ico">🗺️</div>
+        <h3>Mappe concettuali</h3>
+        <p>Visualizzazione testuale con frecce dei collegamenti tra concetti. Ideale per stili visivo-spaziali di apprendimento.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COME FUNZIONA -->
+<section class="steps-sec" id="come-funziona">
+  <div class="steps-inner">
+    <div class="sec-label">Come funziona</div>
+    <div class="sec-title">Quattro passi verso<br>l'esame che <span class="tl">meriti</span></div>
+    <div class="steps-grid">
+      <div class="step-item reveal">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">🎓</span>
+          <div class="step-num">1</div>
+        </div>
+        <h3>Il tuo percorso</h3>
+        <p>Università, corso, anno. L'assistente si configura sul tuo contesto accademico in 60 secondi.</p>
+      </div>
+      <div class="step-item reveal" style="transition-delay:0.1s">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">🧩</span>
+          <div class="step-num">2</div>
+        </div>
+        <h3>Il profilo DSA</h3>
+        <p>Seleziona uno o più profili. Puoi saltarlo: l'assistente funziona per tutti, ma è più potente con il profilo attivo.</p>
+      </div>
+      <div class="step-item reveal" style="transition-delay:0.2s">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">📂</span>
+          <div class="step-num">3</div>
+        </div>
+        <h3>Carica il libro</h3>
+        <p>PDF del manuale universitario. Fino a 50MB. Viene salvato nel tuo account — disponibile su tutti i dispositivi.</p>
+      </div>
+      <div class="step-item reveal" style="transition-delay:0.3s">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">💬</span>
+          <div class="step-num">4</div>
+        </div>
+        <h3>Studia a modo tuo</h3>
+        <p>Spiega, quiz, mappa, ripasso, audio, scaffolding. Puoi parlare anche con il microfono. Ogni risposta è calibrata su di te.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUPPORTO LEGALE/NORMATIVO -->
+<section class="legal-sec">
+  <div class="legal-inner">
+    <div>
+      <div class="legal-title">I tuoi diritti accademici, amplificati dall'IA</div>
+      <p class="legal-desc">La legge 170/2010 riconosce il diritto agli studenti con DSA a misure dispensative e strumenti compensativi. OndaMente è pensato per essere uno strumento compensativo digitale a tua disposizione — in qualsiasi momento, per qualsiasi materia.</p>
+      <div class="legal-pills">
+        <span class="legal-pill">📋 Legge 170/2010</span>
+        <span class="legal-pill">📋 Linee guida MIUR</span>
+        <span class="legal-pill">📋 DM 5669/2011</span>
+        <span class="legal-pill">🔒 Privacy GDPR</span>
+      </div>
+    </div>
+    <div class="legal-cards">
+      <div class="legal-card reveal">
+        <div class="legal-card-ico">🛡️</div>
+        <div>
+          <div class="legal-card-head">Valutazione del contenuto, mai della forma</div>
+          <div class="legal-card-body">Risposte corrette concettualmente vengono sempre riconosciute come corrette, anche se formulate con errori ortografici o sintattici. MIUR 4.3.1.</div>
+        </div>
+      </div>
+      <div class="legal-card reveal" style="transition-delay:0.1s">
+        <div class="legal-card-ico">🔬</div>
+        <div>
+          <div class="legal-card-head">Analisi dell'errore per tipo</div>
+          <div class="legal-card-body">Per la discalculia: ogni errore viene classificato (procedurale, semantico, visuospaziale, strategico) e la spiegazione parte da quel tipo specifico. MIUR 4.3.3.</div>
+        </div>
+      </div>
+      <div class="legal-card reveal" style="transition-delay:0.2s">
+        <div class="legal-card-ico">💚</div>
+        <div>
+          <div class="legal-card-head">Sicurezza psicologica e autostima</div>
+          <div class="legal-card-body">Mai frasi come "è semplice" o "come già detto". Ogni progresso — anche parziale — viene riconosciuto. Il successo costruisce autostima e previene l'abbandono. MIUR 5.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PREZZI -->
+<section class="pricing-sec" id="prezzi">
+  <div class="pricing-inner">
+    <div class="sec-label">Prezzi</div>
+    <div class="sec-title">Inizia gratis.<br><em>Scala</em> quando sei pronto.</div>
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <div class="plan-head-tag">Free</div>
+        <div class="plan-name">Starter</div>
+        <div class="plan-tagline">Per provare senza impegno</div>
+        <div class="plan-price-row">
+          <span class="plan-cur">€</span>
+          <span class="plan-price">0</span>
+          <span class="plan-per">/mese</span>
+        </div>
+        <ul class="plan-feats">
+          <li>1 materia configurabile</li>
+          <li>50 messaggi al mese</li>
+          <li class="dsa-feat">Profilo DSA personalizzato</li>
+          <li class="dsa-feat">Adattamenti MIUR attivi</li>
+          <li>Modalità spiega e quiz</li>
+          <li>Caricamento 1 PDF</li>
+        </ul>
+        <a href="assistente.html" class="plan-btn">Inizia gratis</a>
+        <div class="plan-note">Nessuna carta di credito</div>
+      </div>
+
+      <div class="pricing-card pop reveal" style="transition-delay:0.1s">
+        <div class="plan-head-tag" style="color:rgba(255,255,255,0.4)">Mensile</div>
+        <div class="plan-name">Student Pro</div>
+        <div class="plan-tagline">Per chi studia seriamente</div>
+        <div class="plan-price-row">
+          <span class="plan-cur">€</span>
+          <span class="plan-price">9</span>
+          <span class="plan-per">/mese</span>
+        </div>
+        <ul class="plan-feats">
+          <li>Materie illimitate</li>
+          <li>Messaggi illimitati</li>
+          <li class="dsa-feat">Tutti i profili DSA + comorbilità</li>
+          <li class="dsa-feat">Modalità Audio + sintesi vocale</li>
+          <li class="dsa-feat">Scaffolding guidato passo-passo</li>
+          <li>PDF illimitati</li>
+          <li>Storico conversazioni</li>
+          <li>Sincronizzazione multi-device</li>
+        </ul>
+        <button class="plan-btn" onclick="openCheckout('pro')">Abbonati — €9/mese</button>
+        <div class="plan-note">Disdici quando vuoi</div>
+      </div>
+
+      <div class="pricing-card reveal" style="transition-delay:0.2s">
+        <div class="plan-head-tag">Una tantum</div>
+        <div class="plan-name">Lifetime</div>
+        <div class="plan-tagline">Paghi una volta, usi sempre</div>
+        <div class="plan-price-row">
+          <span class="plan-cur">€</span>
+          <span class="plan-price">79</span>
+          <span class="plan-per">una volta</span>
+        </div>
+        <ul class="plan-feats">
+          <li>Tutto di Student Pro</li>
+          <li>Accesso a vita</li>
+          <li>Tutte le future funzionalità</li>
+          <li class="dsa-feat">Nuovi profili DSA inclusi</li>
+          <li>Priorità nel supporto</li>
+        </ul>
+        <button class="plan-btn" onclick="openCheckout('lifetime')">Acquista — €79</button>
+        <div class="plan-note">Investimento unico, nessun canone</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIANZE -->
+<section class="testi-sec">
+  <div class="testi-inner">
+    <div class="sec-label">Storie vere</div>
+    <div class="sec-title">Chi lo usa già</div>
+    <div class="testi-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-tag">🧩 Dislessia + ADHD</div>
+        <p class="testi-text">"Per la prima volta un'app che non mi tratta da stupida. Le frasi brevi e i chunk numerati hanno cambiato completamente come studio. Ho passato Pedagogia al primo appello."</p>
+        <div class="testi-author">
+          <div class="testi-ava" style="background:var(--violet-light)">👩</div>
+          <div>
+            <div class="testi-name">Chiara V.</div>
+            <div class="testi-role">Scienze della Formazione · UniCal</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal" style="transition-delay:0.1s">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-tag">🔊 Sintesi vocale</div>
+        <p class="testi-text">"La modalità audio è fondamentale per me. Ascolto le spiegazioni mentre cammino. L'assistente legge senza abbreviazioni strane e le frasi si sentono benissimo."</p>
+        <div class="testi-author">
+          <div class="testi-ava" style="background:var(--teal-light)">👨</div>
+          <div>
+            <div class="testi-name">Luca M.</div>
+            <div class="testi-role">Giurisprudenza · Università di Catanzaro</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal" style="transition-delay:0.2s">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-tag">⚡ ADHD</div>
+        <p class="testi-text">"Il modo in cui inizia sempre con 'Stiamo parlando di: [tema]' mi salva la vita. So sempre dove sono. E quando sbaglio una risposta mi spiega il mio errore, non mi giudica."</p>
+        <div class="testi-author">
+          <div class="testi-ava" style="background:var(--amber-light)">👩</div>
+          <div>
+            <div class="testi-name">Sara T.</div>
+            <div class="testi-role">Psicologia · Sapienza Roma</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-sec" id="faq">
+  <div class="faq-inner">
+    <div>
+      <div class="sec-label">FAQ</div>
+      <div class="sec-title" style="font-size: clamp(28px, 3vw, 42px);">Domande<br><em>frequenti</em></div>
+      <p class="sec-sub" style="font-size:15px; margin-top:14px;">Hai ancora dubbi? Scrivici.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Devo avere una diagnosi DSA ufficiale per usarlo? <span class="faq-ico">+</span></div>
+        <div class="faq-a">No. I profili DSA sono facoltativi e auto-selezionabili. Puoi usare OndaMente senza dichiarare niente. Se hai una diagnosi, il profilo attiva adattamenti molto più mirati — ma la scelta è tua.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Funziona per qualsiasi materia universitaria? <span class="faq-ico">+</span></div>
+        <div class="faq-a">Sì. Giurisprudenza, Medicina, Pedagogia, Economia, Ingegneria, Lettere — qualsiasi corso con un manuale in PDF. L'assistente si configura su università, corso e materia specifica.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">I miei dati e il mio profilo DSA sono al sicuro? <span class="faq-ico">+</span></div>
+        <div class="faq-a">Assolutamente. I dati del profilo DSA sono salvati nel tuo account e non vengono mai condivisi con terzi né usati per addestrare modelli AI. Puoi eliminarli in qualsiasi momento dalle impostazioni.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Posso usarlo su smartphone? <span class="faq-ico">+</span></div>
+        <div class="faq-a">Sì. L'interfaccia è completamente ottimizzata per mobile con una navigazione apposita, input vocale integrato e barra audio sempre accessibile. Puoi studiare ovunque.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Cosa succede se ho più di un profilo DSA? <span class="faq-ico">+</span></div>
+        <div class="faq-a">Puoi selezionarne più di uno. OndaMente attiva tutti gli adattamenti combinati e aumenta ulteriormente la semplificazione — riconoscendo che la comorbilità genera difficoltà superiore alla somma dei singoli profili (MIUR 1.4).</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Posso annullare l'abbonamento quando voglio? <span class="faq-ico">+</span></div>
+        <div class="faq-a">Sì, senza penali. Manterrai l'accesso fino alla fine del periodo pagato. Per il Lifetime non ci sono abbonamenti da disdire.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-sec">
+  <div class="final-label">Inizia oggi</div>
+  <h2 class="final-h">Studia come<br><em>funziona</em> il tuo cervello</h2>
+  <p class="final-sub">Gratuito per iniziare. Nessuna carta richiesta. Il tuo primo esame con OndaMente è più vicino di quanto pensi.</p>
+  <a href="assistente.html" class="final-btn">🌊 Prova OndaMente gratis</a>
+  <div class="final-privacy">🔒 Nessuna carta · Dati protetti · Profilo DSA privato</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <strong style="color:rgba(255,255,255,0.6)">OndaMente</strong> — Assistente universitario per ogni modo di imparare
+  </div>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Termini di servizio</a>
+    <a href="#">Contatti</a>
+    <a href="#">Accessibilità</a>
+  </div>
+  <div>© 2025 OndaMente · Made in Italy 🇮🇹</div>
+</footer>
+
+<!-- MODAL CHECKOUT -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modal-form-content">
+      <h2>Sblocca l'accesso</h2>
+      <span class="modal-plan-tag" id="modal-plan-name">Student Pro — €9/mese</span>
+      <div class="mf">
+        <label>Nome e cognome</label>
+        <input type="text" placeholder="Mario Rossi">
+      </div>
+      <div class="mf">
+        <label>Email universitaria</label>
+        <input type="email" placeholder="mario@unical.it">
+      </div>
+      <div class="mf">
+        <label>Numero di carta</label>
+        <input type="text" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)">
+      </div>
+      <div class="mf-row">
+        <div class="mf"><label>Scadenza</label><input type="text" placeholder="MM/AA" maxlength="5"></div>
+        <div class="mf"><label>CVC</label><input type="text" placeholder="123" maxlength="3"></div>
+      </div>
+      <button class="modal-btn" onclick="handlePayment()">Paga ora 🔒</button>
+      <div class="modal-secure">🔒 Pagamento sicuro SSL · Rimborso garantito 30 giorni</div>
+    </div>
+    <div class="modal-success" id="modal-success">
+      <div class="modal-success-ico">🎉</div>
+      <h3>Accesso attivato!</h3>
+      <p>Il tuo account è pronto. Configura il tuo profilo DSA e carica il primo libro.</p>
+      <a href="assistente.html" class="btn-main" style="display:inline-flex;margin:0 auto;">Vai all'assistente →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const t = document.querySelector(a.getAttribute('href'));
+      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+
+  // FAQ
+  function toggleFaq(el) { el.classList.toggle('open'); }
+
+  // ── Checkout Stripe ──────────────────────────────────────────────────────────
+  // Non raccogliamo dati carta qui: la landing non ha Supabase inizializzato.
+  // Mandiamo l'utente all'assistente (dove già c'è il login Supabase), che legge
+  // ?checkout=plan in loadAfterLogin() e parte il redirect a Stripe Checkout.
+  function openCheckout(plan) {
+    window.location.href = 'assistente.html?checkout=' + plan;
+  }
+
+  // Bottone "Inizia gratis" → va direttamente all'assistente senza checkout
+  // (gestito già dagli <a href="assistente.html"> nel markup)
+
+  // Manteniamo closeModal per il bottone × della modal (anche se non si apre più)
+  function closeModal() {
+    const m = document.getElementById('modal');
+    if(m) m.classList.remove('open');
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
