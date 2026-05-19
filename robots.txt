@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /assistente.html
+
+Sitemap: https://ondamente.it/sitemap.xml
