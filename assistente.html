@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OndaMente — Assistente Adattivo DSA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg:#080f0c;--surface:#0d1f18;--surface2:#0F2318;--border:#1a3828;
+    --accent:#1D9E75;--accent2:#4ecdc4;--accent3:#f7b267;--text:#e8e4f0;
+    --text-dim:#7a7390;--user-bg:#0a2018;--success:#5ec87a;--tag-bg:#0d2318;--danger:#e07070;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+  /* AUTH */
+  .auth-screen{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .auth-screen.hidden{display:none;}
+  .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px;max-width:420px;width:100%;box-shadow:0 40px 80px rgba(0,0,0,0.5);position:relative;overflow:hidden;}
+  .auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));}
+  .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+  .auth-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .auth-logo-text{font-family:'Fraunces',serif;font-size:20px;font-weight:700;}
+  .auth-logo-dsa{background:rgba(29,158,117,0.2);color:var(--accent);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid rgba(29,158,117,0.3);}
+  .auth-tabs{display:flex;gap:0;margin-bottom:28px;background:var(--bg);border-radius:10px;padding:4px;}
+  .auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:600;color:var(--text-dim);cursor:pointer;border-radius:8px;transition:all 0.2s;border:none;background:none;font-family:'DM Sans',sans-serif;}
+  .auth-tab.active{background:var(--surface2);color:var(--text);}
+  .auth-field{margin-bottom:16px;}
+  .auth-field label{display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+  .auth-field input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+  .auth-field input:focus{border-color:var(--accent);}
+  .auth-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-top:8px;}
+  .auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(29,158,117,0.35);}
+  .auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .auth-msg{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
+  .auth-msg.err{background:rgba(224,112,112,0.1);border:1px solid rgba(224,112,112,0.3);color:var(--danger);}
+  .auth-msg.ok{background:rgba(94,200,122,0.1);border:1px solid rgba(94,200,122,0.3);color:var(--success);}
+  .auth-msg.visible{display:block;}
+
+  /* HEADER */
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;flex-shrink:0;position:relative;}
+  header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));opacity:0.4;}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .logo-text{font-family:'Fraunces',serif;font-size:18px;font-weight:700;}
+  .logo-dsa{background:rgba(29,158,117,0.15);color:var(--accent);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid rgba(29,158,117,0.25);}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .user-email{font-size:12px;color:var(--text-dim);}
+  .save-ind{font-size:11px;color:var(--text-dim);display:none;align-items:center;gap:5px;}
+  .save-ind.v{display:flex;}
+  .hbtn{background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+  .hbtn:hover{border-color:var(--accent);color:var(--accent);}
+  .spacing-btn{background:none;border:1.5px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+  .spacing-btn:hover,.spacing-btn.on{border-color:var(--accent2);color:var(--accent2);}
+
+  /* SUBJECT SCREEN */
+  .subj-screen{position:fixed;inset:0;background:var(--bg);z-index:90;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .subj-screen.hidden{display:none;}
+  .subj-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;max-width:560px;width:100%;box-shadow:0 40px 80px rgba(0,0,0,0.5);position:relative;overflow:hidden;max-height:80vh;overflow-y:auto;}
+  .subj-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));}
+  .subj-icon{font-size:40px;margin-bottom:16px;}
+  .subj-title{font-family:'Fraunces',serif;font-size:24px;font-weight:900;margin-bottom:6px;}
+  .subj-sub{font-size:13px;color:var(--text-dim);margin-bottom:24px;}
+  .subj-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+  .subj-item{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;}
+  .subj-item:hover{border-color:var(--accent2);}
+  .subj-item-name{font-weight:600;font-size:14px;}
+  .subj-item-meta{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  .subj-item-book{font-size:11px;color:var(--accent3);margin-top:2px;}
+  .subj-new{width:100%;background:none;border:1.5px dashed var(--border);border-radius:12px;padding:14px;font-size:14px;font-weight:600;color:var(--text-dim);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .subj-new:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* ONBOARDING */
+  .onboarding{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity 0.4s,visibility 0.4s;overflow-y:auto;}
+  .onboarding.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+  .ob-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px;max-width:560px;width:100%;box-shadow:0 40px 80px rgba(0,0,0,0.5);position:relative;overflow:hidden;margin:auto;}
+  .ob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));}
+  .step-ind{display:flex;gap:8px;margin-bottom:32px;}
+  .sdot{height:3px;border-radius:2px;background:var(--border);flex:1;transition:background 0.3s;}
+  .sdot.a{background:var(--accent)}.sdot.d{background:var(--success);}
+  .ob-ico{font-size:40px;margin-bottom:16px;animation:bounce 0.5s ease;}
+  @keyframes bounce{0%{transform:scale(0.5);opacity:0;}70%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+  .ob-title{font-family:'Fraunces',serif;font-size:26px;font-weight:900;margin-bottom:8px;}
+  .ob-sub{font-size:14px;color:var(--text-dim);line-height:1.6;margin-bottom:28px;}
+  .ob-f{margin-bottom:20px;}
+  .ob-f label{display:block;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
+  .ob-f input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:13px 16px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+  .ob-f input:focus{border-color:var(--accent);}
+  .ob-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .ob-chip{background:var(--bg);border:1.5px solid var(--border);border-radius:100px;padding:8px 16px;font-size:13px;color:var(--text-dim);cursor:pointer;transition:all 0.2s;user-select:none;}
+  .ob-chip:hover{border-color:var(--accent);color:var(--text);}
+  .ob-chip.sel{border-color:var(--accent);background:rgba(29,158,117,0.12);color:var(--accent);}
+  .ob-chip.dsa.sel{border-color:var(--accent2);background:rgba(78,205,196,0.1);color:var(--accent2);}
+  .ob-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-top:8px;}
+  .ob-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(29,158,117,0.35);}
+  .ob-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .privacy-note{background:rgba(29,158,117,0.07);border:1px solid rgba(29,158,117,0.2);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--text-dim);margin-top:16px;line-height:1.6;}
+  .privacy-note strong{color:var(--accent);}
+  .up-zone{border:2px dashed var(--border);border-radius:16px;padding:40px 24px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:20px;position:relative;}
+  .up-zone:hover,.up-zone.drag{border-color:var(--accent);background:rgba(29,158,117,0.04);}
+  .up-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .up-prog{display:none;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;}
+  .up-prog.v{display:block;}
+  .up-ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;}
+  .up-fn{color:var(--accent);font-weight:600;}.up-pct{color:var(--text-dim);}
+  .up-bg{height:4px;background:var(--border);border-radius:2px;}
+  .up-fill{height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;width:0%;transition:width 0.3s;}
+  .up-ok{display:none;background:rgba(94,200,122,0.1);border:1px solid rgba(94,200,122,0.3);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--success);margin-bottom:16px;align-items:center;gap:10px;}
+  .up-ok.v{display:flex;}
+
+  /* MAIN */
+  .main{flex:1;display:flex;overflow:hidden;}
+  .sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:24px;}
+  .sb-title{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;padding:0 4px;}
+  .mode-btn{width:100%;text-align:left;background:none;border:none;color:var(--text-dim);padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;transition:all 0.2s;}
+  .mode-btn:hover{background:var(--surface2);color:var(--text);}
+  .mode-btn.active{background:rgba(29,158,117,0.1);color:var(--accent);}
+  .mi{font-size:15px;}
+  .mode-btn .dsa-only{font-size:9px;background:rgba(78,205,196,0.15);color:var(--accent2);border-radius:4px;padding:1px 5px;margin-left:auto;letter-spacing:0.06em;}
+  .tbtn{width:100%;text-align:left;background:none;border:none;color:var(--text-dim);padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;transition:all 0.2s;line-height:1.4;}
+  .tbtn:hover{background:var(--surface2);color:var(--text);}
+  .tbtn.active{background:rgba(29,158,117,0.08);color:var(--accent);}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--accent2);flex-shrink:0;}
+  .bk-info{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:12px;}
+  .bk-label{color:var(--text-dim);margin-bottom:4px;}
+  .bk-name{color:var(--accent);font-weight:600;word-break:break-word;}
+  .dsa-box{background:linear-gradient(135deg,rgba(29,158,117,0.1),rgba(78,205,196,0.07));border:1px solid rgba(29,158,117,0.25);border-radius:10px;padding:12px;font-size:12px;}
+  .dsa-box-label{color:var(--text-dim);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;}
+  .dsa-tag{display:inline-block;background:rgba(29,158,117,0.18);color:var(--accent);border-radius:5px;padding:2px 7px;font-size:11px;font-weight:600;margin:2px 2px 2px 0;}
+
+  /* CHAT */
+  .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .messages{flex:1;overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;gap:20px;scroll-behavior:smooth;}
+  .messages::-webkit-scrollbar{width:4px;}
+  .messages::-webkit-scrollbar-track{background:transparent;}
+  .messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:40px;gap:20px;}
+  .welcome-icon{font-size:52px;filter:drop-shadow(0 0 20px rgba(29,158,117,0.5));}
+  .welcome h1{font-family:'Fraunces',serif;font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .welcome p{color:var(--text-dim);font-size:15px;max-width:460px;line-height:1.7;}
+  .wc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;max-width:540px;margin-top:8px;}
+  .wc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:left;}
+  .wc:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .wc .ci{font-size:22px;margin-bottom:8px;}
+  .wc .ct{font-size:13px;font-weight:600;margin-bottom:4px;}
+  .wc .cd{font-size:12px;color:var(--text-dim);line-height:1.4;}
+  .message{display:flex;gap:14px;animation:msgIn 0.3s ease;max-width:820px;}
+  @keyframes msgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .message.user{flex-direction:row-reverse;align-self:flex-end;}
+  .avatar{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .avatar.ai{background:linear-gradient(135deg,var(--accent),var(--accent2));}
+  .avatar.user{background:var(--user-bg);border:1px solid var(--border);}
+  /* Line-height aumentato per leggibilità DSA */
+  .bubble{padding:14px 18px;border-radius:14px;font-size:15px;line-height:1.85;max-width:640px;letter-spacing:0.01em;}
+  .ai .bubble{background:var(--surface2);border:1px solid var(--border);border-top-left-radius:4px;}
+  .user .bubble{background:var(--user-bg);border:1px solid rgba(29,158,117,0.2);border-top-right-radius:4px;}
+  .bubble h3{font-family:'Fraunces',serif;font-size:16px;color:var(--accent);margin-bottom:10px;margin-top:14px;}
+  .bubble h3:first-child{margin-top:0;}
+  .bubble p{margin-bottom:12px;}
+  .bubble p:last-child{margin-bottom:0;}
+  .bubble strong{color:var(--accent3);font-weight:700;}
+  .bubble em{color:var(--accent2);font-style:italic;}
+  .bubble ul,.bubble ol{padding-left:22px;margin:10px 0;}
+  .bubble li{margin-bottom:8px;}
+  .bubble .ib{background:rgba(29,158,117,0.08);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;font-size:14px;}
+  .bubble .ok-box{background:rgba(94,200,122,0.08);border-left:3px solid var(--success);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;font-size:14px;color:var(--success);}
+  body.spacing-plus .bubble{font-size:16.5px;line-height:2.2;letter-spacing:0.025em;}
+  body.spacing-plus .bubble li{margin-bottom:12px;}
+
+  /* ── TTS AUDIO BAR ── */
+  .tts-bar{
+    display:none; align-items:center; gap:10px;
+    background:rgba(78,205,196,0.1); border:1px solid rgba(78,205,196,0.3);
+    border-radius:10px; padding:8px 14px; margin:0 32px 0;
+    flex-shrink:0;
+  }
+  .tts-bar.visible{display:flex;}
+  .tts-label{font-size:12px;color:var(--accent2);font-weight:700;}
+  .tts-btn{
+    background:none; border:1.5px solid rgba(78,205,196,0.4);
+    color:var(--accent2); border-radius:8px; padding:4px 10px;
+    font-size:12px; cursor:pointer; font-family:'DM Sans',sans-serif;
+    transition:all 0.2s;
+  }
+  .tts-btn:hover{background:rgba(78,205,196,0.15);}
+  .tts-btn.active{background:rgba(78,205,196,0.2); border-color:var(--accent2);}
+  .tts-speed{
+    background:var(--bg); border:1.5px solid var(--border);
+    color:var(--text); border-radius:8px; padding:4px 8px;
+    font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer;
+  }
+  .tts-speaking-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--accent2); display:none;
+    animation:ttsPulse 1s infinite;
+  }
+  .tts-speaking-dot.on{display:block;}
+  @keyframes ttsPulse{0%,100%{opacity:0.3;transform:scale(0.8);}50%{opacity:1;transform:scale(1.2);}}
+  .typing-indicator{display:flex;gap:14px;animation:msgIn 0.3s ease;}
+  .typing-dots{background:var(--surface2);border:1px solid var(--border);border-radius:14px;border-top-left-radius:4px;padding:16px 20px;display:flex;gap:5px;align-items:center;}
+  .typing-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:td 1.2s infinite;}
+  .typing-dot:nth-child(2){animation-delay:0.2s;}
+  .typing-dot:nth-child(3){animation-delay:0.4s;}
+  @keyframes td{0%,60%,100%{transform:translateY(0);opacity:0.4;}30%{transform:translateY(-6px);opacity:1;}}
+  .input-area{padding:16px 32px 20px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;}
+  .qa-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .qa-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);border-radius:100px;padding:6px 14px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
+  .qa-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .qa-btn.dsa-qa{border-color:rgba(78,205,196,0.25);color:var(--accent2);}
+  .qa-btn.dsa-qa:hover{background:rgba(78,205,196,0.08);}
+  .inp-row{display:flex;gap:12px;align-items:flex-end;}
+  textarea{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;resize:none;min-height:52px;max-height:140px;outline:none;transition:border-color 0.2s;line-height:1.5;}
+  textarea:focus{border-color:var(--accent);}
+  textarea::placeholder{color:var(--text-dim);}
+  .send-btn{width:48px;height:48px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.2s;flex-shrink:0;}
+  .send-btn:hover{transform:scale(1.05);opacity:0.9;}
+  .send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .mic-btn{
+    width:48px; height:48px; flex-shrink:0;
+    background:var(--surface2); border:1.5px solid var(--border);
+    border-radius:12px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; transition:all 0.2s;
+  }
+  .mic-btn:hover{ border-color:var(--accent2); }
+  .mic-btn.recording{
+    background:rgba(224,112,112,0.15);
+    border-color:var(--danger);
+    animation:micPulse 1s infinite;
+  }
+  .mic-btn.recording::after{
+    content:''; position:absolute;
+    width:48px; height:48px; border-radius:12px;
+    border:2px solid var(--danger);
+    animation:micRing 1s infinite;
+  }
+  @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(224,112,112,0.4);}50%{box-shadow:0 0 0 8px rgba(224,112,112,0);}}
+  @keyframes micRing{0%{transform:scale(1);opacity:1;}100%{transform:scale(1.4);opacity:0;}}
+  .mic-btn:not(.supported){ display:none; }
+  .hidden{display:none!important;}
+  @media(max-width:768px){
+    /* ── BODY ── */
+    body{ overflow:hidden; }
+
+    /* ── AUTH ── */
+    .auth-card{ padding:28px 20px; }
+    .auth-logo-text{ font-size:17px; }
+
+    /* ── HEADER ── */
+    header{ padding:0 14px; height:52px; }
+    .logo-text{ font-size:16px; }
+    .logo-dsa{ display:none; }
+    .user-email{ display:none; }
+    .save-ind{ display:none!important; }
+    .spacing-btn{ display:none; }
+    /* Mostra solo i bottoni essenziali */
+    #btnCambia{ font-size:11px; padding:5px 8px; }
+
+    /* ── TTS BAR ── */
+    .tts-bar{
+      margin:0; border-radius:0; border-left:none; border-right:none;
+      padding:6px 14px; gap:8px; overflow-x:auto; flex-wrap:nowrap;
+    }
+    .tts-label{ white-space:nowrap; }
+
+    /* ── SUBJECT SCREEN ── */
+    .subj-card{ padding:24px 16px; max-height:90vh; }
+    /* Su mobile la subj-screen deve stare sopra tutto e tener conto di header + bottom nav */
+    .subj-screen{
+      z-index:150;
+      padding-top:calc(52px + 12px);
+      padding-bottom:calc(58px + 12px);
+      padding-left:16px;
+      padding-right:16px;
+      align-items:flex-start;
+      overflow-y:auto;
+    }
+    .subj-card{
+      max-height:none;
+      width:100%;
+      margin:auto;
+    }
+
+    /* ── ONBOARDING ── */
+    .ob-card{ padding:28px 18px; max-height:90vh; overflow-y:auto; }
+    .ob-title{ font-size:22px; }
+
+    /* ── SIDEBAR — nascosta, sostituita da bottom nav ── */
+    .sidebar{ display:none; }
+
+    /* ── BOTTOM NAV MOBILE ── */
+    .bottom-nav{
+      display:flex!important;
+      position:fixed; bottom:0; left:0; right:0; z-index:50;
+      background:var(--surface);
+      border-top:1px solid var(--border);
+      height:58px;
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+    .bnav-btn{
+      flex:1; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:3px;
+      background:none; border:none; cursor:pointer;
+      color:var(--text-dim); font-family:'DM Sans',sans-serif;
+      font-size:10px; font-weight:600;
+      transition:color 0.2s; padding:6px 2px;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .bnav-btn .bico{ font-size:19px; line-height:1; }
+    .bnav-btn.active{ color:var(--accent); }
+    .bnav-btn.active .bico{ filter:drop-shadow(0 0 6px rgba(29,158,117,0.6)); }
+
+    /* ── DRAWER SIDEBAR MOBILE ── */
+    .mob-drawer{
+      position:fixed; bottom:58px; left:0; right:0; z-index:40;
+      background:var(--surface);
+      border-top:1px solid var(--border);
+      border-radius:20px 20px 0 0;
+      padding:20px 16px 16px;
+      transform:translateY(100%);
+      transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      max-height:70vh; overflow-y:auto;
+    }
+    .mob-drawer.open{ transform:translateY(0); }
+    .mob-drawer-handle{
+      width:36px; height:4px; background:var(--border);
+      border-radius:2px; margin:0 auto 16px; display:block;
+    }
+    .mob-drawer .sb-title{ font-size:10px; }
+    .mob-drawer .mode-btn{ padding:11px 12px; font-size:14px; border-radius:10px; }
+    .mob-drawer .tbtn{ padding:9px 12px; font-size:13px; }
+    .mob-drawer-overlay{
+      display:none; position:fixed; inset:0; z-index:35;
+      background:rgba(0,0,0,0.5);
+    }
+    .mob-drawer-overlay.on{ display:block; }
+
+    /* ── CHAT AREA ── */
+    .chat-area{ padding-bottom:0; }
+    .messages{
+      padding:14px 14px 10px;
+      padding-bottom:calc(58px + 140px);
+      overflow-y:auto;
+    }
+
+    /* Welcome cards */
+    .wc-grid{ grid-template-columns:1fr 1fr; gap:8px; }
+    .wc{ padding:12px; }
+    .wc .ci{ font-size:18px; }
+    .wc .ct{ font-size:12px; }
+    .wc .cd{ font-size:11px; }
+    .welcome h1{ font-size:20px; }
+    .welcome p{ font-size:13px; }
+    .welcome-icon{ font-size:40px; }
+
+    /* Bubble */
+    .bubble{ font-size:14px; line-height:1.75; padding:12px 14px; max-width:100%; }
+    .message{ max-width:100%; }
+
+    /* ── INPUT AREA ── */
+    .input-area{
+      position:fixed; bottom:58px; left:0; right:0; z-index:30;
+      padding:8px 12px 10px;
+      background:var(--surface);
+      border-top:1px solid var(--border);
+      box-shadow:0 -4px 20px rgba(0,0,0,0.3);
+    }
+    .qa-row{
+      display:flex; gap:6px; overflow-x:auto; flex-wrap:nowrap;
+      margin-bottom:8px; padding-bottom:2px;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .qa-row::-webkit-scrollbar{ display:none; }
+    .qa-btn{
+      white-space:nowrap; flex-shrink:0;
+      padding:5px 12px; font-size:12px;
+    }
+    .inp-row{ gap:8px; }
+    textarea{
+      font-size:16px; /* previene zoom su iOS */
+      padding:10px 14px; min-height:44px;
+      border-radius:12px;
+    }
+    .send-btn{ width:44px; height:44px; font-size:16px; border-radius:10px; }
+    .mic-btn{ width:44px; height:44px; font-size:18px; border-radius:10px; }
+  }
+
+  /* Desktop — bottom nav nascosta */
+  .bottom-nav{ display:none; }
+  .mob-drawer{ display:none; }
+  .mob-drawer-overlay{ display:none; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg width="36" height="36" viewBox="0 0 36 36" style="flex-shrink:0">
+        <rect width="36" height="36" rx="10" fill="#0c0b14"/>
+        <text x="2" y="30" font-family="Fraunces, serif" font-size="32" font-weight="900" fill="#ffffff" letter-spacing="-1">O</text>
+        <path d="M4 21 C9 11, 14 11, 19 17 C24 23, 29 23, 34 17" fill="none" stroke="#1D9E75" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+      <span class="auth-logo-text">OndaMente</span>
+      <span class="auth-logo-dsa">DSA</span>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Accedi</button>
+      <button class="auth-tab" id="tabReg" onclick="switchTab('register')">Registrati</button>
+    </div>
+    <div class="auth-msg err" id="authErr"></div>
+    <div class="auth-msg ok" id="authOk"></div>
+    <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="mario@email.com" onkeydown="authKey(event)"></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="authPass" placeholder="••••••••" onkeydown="authKey(event)"></div>
+    <button class="auth-btn" id="authBtn" onclick="handleAuth()">Accedi</button>
+    <p style="text-align:center;font-size:12px;color:var(--text-dim);margin-top:16px;">I tuoi dati sono sincronizzati su tutti i tuoi dispositivi 🔒</p>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" style="flex-shrink:0">
+      <rect width="32" height="32" rx="8" fill="#0c0b14"/>
+      <text x="2" y="27" font-family="Fraunces, serif" font-size="29" font-weight="900" fill="#ffffff" letter-spacing="-1">O</text>
+      <path d="M4 19 C8 10, 12 10, 16 15 C20 20, 24 20, 28 15" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="logo-text">OndaMente</span>
+    <span class="logo-dsa">DSA</span>
+  </div>
+  <div class="header-right">
+    <button class="spacing-btn" id="spacingBtn" onclick="toggleSpacing()" title="Aumenta spaziatura testo">Aa+</button>
+    <span class="user-email" id="userEmail"></span>
+    <span class="save-ind" id="saveInd">⏳ Salvataggio...</span>
+    <button class="hbtn" id="btnCambia" onclick="openSubjectScreen()" style="display:none">📚 Cambia materia</button>
+    <button class="hbtn" onclick="handleLogout()">Esci</button>
+  </div>
+</header>
+
+<!-- SUBJECT SCREEN -->
+<div class="subj-screen hidden" id="subjScreen">
+  <div class="subj-card">
+    <div class="subj-icon">📚</div>
+    <div class="subj-title">Le tue materie</div>
+    <div class="subj-sub">Seleziona una materia o aggiungine una nuova</div>
+    <div class="subj-list" id="subjList"></div>
+    <button class="subj-new" onclick="startNewSubject()">＋ Aggiungi nuova materia</button>
+  </div>
+</div>
+
+<!-- ONBOARDING — 4 step -->
+<div class="onboarding hidden" id="onboarding">
+  <div class="ob-card">
+    <div class="step-ind">
+      <div class="sdot a" id="d1"></div>
+      <div class="sdot" id="d2"></div>
+      <div class="sdot" id="d3"></div>
+      <div class="sdot" id="d4"></div>
+    </div>
+
+    <!-- STEP 1: profilo -->
+    <div id="s1">
+      <div class="ob-ico">🎓</div>
+      <div class="ob-title">Il tuo percorso</div>
+      <div class="ob-sub">Configuriamo il tuo profilo. Viene salvato e sincronizzato su tutti i dispositivi.</div>
+      <div class="ob-f"><label>Università</label><input type="text" id="uni" placeholder="es. Università della Calabria"></div>
+      <div class="ob-f"><label>Corso di laurea</label><input type="text" id="corso" placeholder="es. Scienze della Formazione"></div>
+      <div class="ob-f">
+        <label>Anno</label>
+        <div class="ob-chips">
+          <div class="ob-chip" onclick="chip('anno',this,'1° anno')">1° anno</div>
+          <div class="ob-chip" onclick="chip('anno',this,'2° anno')">2° anno</div>
+          <div class="ob-chip" onclick="chip('anno',this,'3° anno')">3° anno</div>
+          <div class="ob-chip" onclick="chip('anno',this,'Magistrale 1°')">Mag. 1°</div>
+          <div class="ob-chip" onclick="chip('anno',this,'Magistrale 2°')">Mag. 2°</div>
+        </div>
+      </div>
+      <button class="ob-btn" onclick="goS2()">Continua →</button>
+    </div>
+
+    <!-- STEP 2: materia -->
+    <div id="s2" class="hidden">
+      <div class="ob-ico">📚</div>
+      <div class="ob-title">La materia</div>
+      <div class="ob-sub">Su quale esame vuoi prepararti?</div>
+      <div class="ob-f"><label>Nome materia / esame</label><input type="text" id="materia" placeholder="es. Diritto Privato"></div>
+      <div class="ob-f">
+        <label>Stile preferito</label>
+        <div class="ob-chips">
+          <div class="ob-chip" onclick="chip('stile',this,'Spiegazioni')">📖 Spiegazioni</div>
+          <div class="ob-chip" onclick="chip('stile',this,'Quiz')">🎯 Quiz</div>
+          <div class="ob-chip" onclick="chip('stile',this,'Mappe')">🗺️ Mappe</div>
+          <div class="ob-chip" onclick="chip('stile',this,'Ripasso rapido')">⚡ Ripasso</div>
+        </div>
+      </div>
+      <div class="ob-f">
+        <label>Esame tra...</label>
+        <div class="ob-chips">
+          <div class="ob-chip" onclick="chip('esame',this,'< 1 settimana')">🔴 &lt;1 sett.</div>
+          <div class="ob-chip" onclick="chip('esame',this,'1-2 settimane')">🟡 1-2 sett.</div>
+          <div class="ob-chip" onclick="chip('esame',this,'2-4 settimane')">🟢 2-4 sett.</div>
+          <div class="ob-chip" onclick="chip('esame',this,'> 1 mese')">⚪ +1 mese</div>
+        </div>
+      </div>
+      <button class="ob-btn" onclick="goS3()">Continua →</button>
+    </div>
+
+    <!-- STEP 3: profilo DSA (nuovo) -->
+    <div id="s3" class="hidden">
+      <div class="ob-ico">🧩</div>
+      <div class="ob-title">Accessibilità e supporto</div>
+      <div class="ob-sub">Configuro l'assistente sul tuo modo di apprendere. Tutto è facoltativo.</div>
+      <div class="ob-f">
+        <label>Profilo di apprendimento (anche più di uno)</label>
+        <div class="ob-chips">
+          <div class="ob-chip dsa" onclick="chipDsa(this,'Dislessia')">📖 Dislessia</div>
+          <div class="ob-chip dsa" onclick="chipDsa(this,'Disortografia')">✏️ Disortografia</div>
+          <div class="ob-chip dsa" onclick="chipDsa(this,'Discalculia')">🔢 Discalculia</div>
+          <div class="ob-chip dsa" onclick="chipDsa(this,'ADHD')">⚡ ADHD</div>
+          <div class="ob-chip dsa" onclick="chipDsa(this,'BES')">🌱 BES</div>
+        </div>
+      </div>
+      <div class="ob-f">
+        <label>Strumenti compensativi (opzionale)</label>
+        <div class="ob-chips">
+          <div class="ob-chip dsa" onclick="chipStr(this,'sintesi_vocale')">🔊 Sintesi vocale</div>
+          <div class="ob-chip dsa" onclick="chipStr(this,'mappe_mentali')">🗺️ Mappe mentali</div>
+          <div class="ob-chip dsa" onclick="chipStr(this,'tempi_aggiuntivi')">⏱️ Tempi aggiuntivi</div>
+        </div>
+      </div>
+      <div class="privacy-note">🔒 <strong>Privacy</strong> — Usate solo per personalizzare le risposte. Non condivise con nessuno.</div>
+      <button class="ob-btn" style="margin-top:20px;" onclick="goS4()">Continua →</button>
+      <p style="text-align:center;font-size:12px;color:var(--text-dim);margin-top:10px;cursor:pointer;" onclick="goS4()">Salta questo step →</p>
+    </div>
+
+    <!-- STEP 4: libro -->
+    <div id="s4" class="hidden">
+      <div class="ob-ico">📄</div>
+      <div class="ob-title">Carica il libro</div>
+      <div class="ob-sub">Il testo viene salvato nel tuo account e disponibile su tutti i dispositivi.</div>
+      <div class="up-prog" id="upProg">
+        <div class="up-ph"><span class="up-fn" id="upFn"></span><span class="up-pct" id="upPct">0%</span></div>
+        <div class="up-bg"><div class="up-fill" id="upFill"></div></div>
+      </div>
+      <div class="up-ok" id="upOk">✅ <span id="upOkTxt">Caricato!</span></div>
+      <div class="up-zone" id="upZone">
+        <input type="file" id="fileInput" accept=".pdf" onchange="handleFile(this)">
+        <div style="font-size:40px;margin-bottom:12px;">📂</div>
+        <div style="font-weight:700;margin-bottom:6px;">Clicca o trascina il PDF</div>
+        <div style="font-size:13px;color:var(--text-dim);">Fino a 50MB · PDF con testo selezionabile</div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:20px;">oppure</div>
+      <button class="ob-btn" id="btnFine" onclick="finishOnboarding()">🚀 Inizia senza libro</button>
+    </div>
+  </div>
+</div>
+
+<!-- TTS AUDIO BAR — visibile solo in modalità Audio -->
+<div class="tts-bar" id="ttsBar">
+  <span class="tts-label">🔊 Audio attivo</span>
+  <div class="tts-speaking-dot" id="ttsDot"></div>
+  <button class="tts-btn" id="ttsPlayBtn" onclick="ttsToggle()">▶ Rileggi</button>
+  <button class="tts-btn" onclick="ttsStop()">⏹ Stop</button>
+  <select class="tts-speed" id="ttsSpeed" onchange="ttsSetSpeed(this.value)" title="Velocità lettura">
+    <option value="0.7">Lenta</option>
+    <option value="0.9" selected>Normale</option>
+    <option value="1.1">Veloce</option>
+    <option value="1.3">Molto veloce</option>
+  </select>
+  <select class="tts-speed" id="ttsVoice" title="Voce">
+  </select>
+</div>
+
+<!-- MOBILE DRAWER OVERLAY -->
+<div class="mob-drawer-overlay" id="mobOverlay" onclick="closeDrawer()"></div>
+
+<!-- MOBILE DRAWER — modalità e azioni -->
+<div class="mob-drawer" id="mobDrawer">
+  <span class="mob-drawer-handle"></span>
+
+  <!-- Modalità studio -->
+  <div style="margin-bottom:16px;">
+    <div class="sb-title">Modalità studio</div>
+    <button class="mode-btn active" onclick="setMode('spiega');closeDrawer()" id="mob-mode-spiega"><span class="mi">📖</span> Spiega</button>
+    <button class="mode-btn" onclick="setMode('quiz');closeDrawer()" id="mob-mode-quiz"><span class="mi">🎯</span> Quiz</button>
+    <button class="mode-btn" onclick="setMode('mappa');closeDrawer()" id="mob-mode-mappa"><span class="mi">🗺️</span> Mappa</button>
+    <button class="mode-btn" onclick="setMode('ripasso');closeDrawer()" id="mob-mode-ripasso"><span class="mi">⚡</span> Ripasso</button>
+    <button class="mode-btn" onclick="setMode('scaffolding');closeDrawer()" id="mob-mode-scaffolding">
+      <span class="mi">🧩</span> Guida passo-passo
+      <span style="font-size:9px;background:rgba(78,205,196,0.15);color:var(--accent2);border-radius:4px;padding:1px 5px;margin-left:auto;">DSA</span>
+    </button>
+    <button class="mode-btn" onclick="setMode('audio');closeDrawer()" id="mob-mode-audio">
+      <span class="mi">🔊</span> Modalità Audio
+      <span style="font-size:9px;background:rgba(78,205,196,0.15);color:var(--accent2);border-radius:4px;padding:1px 5px;margin-left:auto;">DSA</span>
+    </button>
+  </div>
+
+  <!-- Azioni rapide standard -->
+  <div style="margin-bottom:16px;">
+    <div class="sb-title">Azioni rapide</div>
+    <button class="tbtn" onclick="qa('Quali sono i 5 concetti più importanti per l\'esame?');closeDrawer()"><span class="dot"></span> Concetti chiave</button>
+    <button class="tbtn" onclick="qa('Fai una sola domanda da esame');closeDrawer()"><span class="dot"></span> Una domanda</button>
+    <button class="tbtn" onclick="qa('Spiegami con un esempio pratico');closeDrawer()"><span class="dot"></span> Esempio concreto</button>
+    <button class="tbtn" onclick="qa('Dammi i 7 concetti chiave da ricordare');closeDrawer()"><span class="dot"></span> 7 concetti chiave</button>
+  </div>
+
+  <!-- Supporto DSA — visibile solo se profilo DSA attivo -->
+  <div id="mobDsaActions" style="display:none;margin-bottom:16px;">
+    <div class="sb-title" style="color:var(--accent2);">🧩 Supporto DSA</div>
+    <button class="tbtn" style="color:var(--accent2);" onclick="qa('Ripeti in modo più semplice, frasi più brevi');closeDrawer()">
+      <span style="color:var(--accent2);">🔁</span> Più semplice
+    </button>
+    <button class="tbtn" style="color:var(--accent2);" onclick="qa('Guidami passo dopo passo, una cosa alla volta');closeDrawer()">
+      <span style="color:var(--accent2);">🧩</span> Guidami passo-passo
+    </button>
+    <button class="tbtn" style="color:var(--accent2);" onclick="qa('Fai una sola domanda e aspetta la mia risposta');closeDrawer()">
+      <span style="color:var(--accent2);">❓</span> Una domanda sola
+    </button>
+    <button class="tbtn" style="color:var(--accent2);" onclick="qa('Dimmi solo i concetti chiave, senza testo lungo');closeDrawer()">
+      <span style="color:var(--accent2);">📌</span> Solo i punti chiave
+    </button>
+    <button class="tbtn" style="color:var(--accent2);" onclick="qa('Dai un esempio della vita quotidiana per spiegarlo');closeDrawer()">
+      <span style="color:var(--accent2);">💡</span> Esempio concreto
+    </button>
+  </div>
+
+  <!-- Profilo DSA attivo -->
+  <div id="mobDsaSection" style="display:none;margin-bottom:16px;">
+    <div class="sb-title">Profilo DSA attivo</div>
+    <div class="dsa-box">
+      <div id="mobDsaTags"></div>
+      <div id="mobStrumentiTags" style="margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- Libro caricato -->
+  <div id="mobBkSection" style="display:none;margin-bottom:16px;">
+    <div class="sb-title">Libro caricato</div>
+    <div class="bk-info"><div class="bk-label">📄</div><div class="bk-name" id="mobBkName">—</div></div>
+  </div>
+
+  <!-- Impostazioni accessibilità -->
+  <div style="margin-bottom:16px;">
+    <div class="sb-title">Accessibilità</div>
+    <button class="tbtn" onclick="toggleSpacing();closeDrawer()" id="mobSpacingBtn">
+      <span>Aa</span> Testo più spaziato
+    </button>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-btn active" id="bnav-chat" onclick="bnavSelect('chat')">
+    <span class="bico">💬</span>Chat
+  </button>
+  <button class="bnav-btn" id="bnav-mode" onclick="toggleDrawer()">
+    <span class="bico">📖</span>Modalità
+  </button>
+  <button class="bnav-btn" id="bnav-materia" onclick="openSubjectScreen()">
+    <span class="bico">📚</span>Materia
+  </button>
+  <button class="bnav-btn" id="bnav-audio" onclick="bnavAudio()">
+    <span class="bico">🔊</span>Audio
+  </button>
+  <button class="bnav-btn" id="bnav-nuova" onclick="bnavNuova()">
+    <span class="bico">＋</span>Nuova
+  </button>
+</nav>
+
+<!-- APP -->
+<div class="main">
+  <aside class="sidebar">
+    <div>
+      <div class="sb-title">Modalità studio</div>
+      <button class="mode-btn active" onclick="setMode('spiega')" id="mode-spiega"><span class="mi">📖</span> Spiega</button>
+      <button class="mode-btn" onclick="setMode('quiz')" id="mode-quiz"><span class="mi">🎯</span> Quiz</button>
+      <button class="mode-btn" onclick="setMode('mappa')" id="mode-mappa"><span class="mi">🗺️</span> Mappa</button>
+      <button class="mode-btn" onclick="setMode('ripasso')" id="mode-ripasso"><span class="mi">⚡</span> Ripasso</button>
+      <button class="mode-btn" onclick="setMode('scaffolding')" id="mode-scaffolding"><span class="mi">🧩</span> Guida passo-passo <span class="dsa-only">DSA</span></button>
+      <button class="mode-btn" onclick="setMode('audio')" id="mode-audio"><span class="mi">🔊</span> Modalità Audio <span class="dsa-only">DSA</span></button>
+    </div>
+    <div id="dsaSection" style="display:none">
+      <div class="sb-title">Profilo DSA</div>
+      <div class="dsa-box">
+        <div class="dsa-box-label">Profilo attivo</div>
+        <div id="dsaTagsDisplay"></div>
+      </div>
+    </div>
+    <div id="bkSection" style="display:none">
+      <div class="sb-title">Libro caricato</div>
+      <div class="bk-info"><div class="bk-label">📄 Testo attivo</div><div class="bk-name" id="bkName">—</div></div>
+    </div>
+    <div id="convSection" style="display:none">
+      <div class="sb-title">Conversazioni</div>
+      <button class="tbtn" onclick="newConversation()" style="color:var(--accent);margin-bottom:6px;">＋ Nuova chat</button>
+      <div id="convList"></div>
+    </div>
+    <div>
+      <div class="sb-title">Azioni rapide</div>
+      <button class="tbtn" onclick="qa('Quali sono i 5 concetti più importanti per l\'esame?')"><span class="dot"></span> Concetti chiave</button>
+      <button class="tbtn" onclick="qa('Fai una sola domanda da esame e aspetta la mia risposta')"><span class="dot"></span> Una domanda</button>
+      <button class="tbtn" onclick="qa('Spiegami con un esempio della vita quotidiana')"><span class="dot"></span> Esempio concreto</button>
+      <button class="tbtn" onclick="qa('Crea un piano di ripasso')"><span class="dot"></span> Piano ripasso</button>
+    </div>
+  </aside>
+
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <rect width="64" height="64" rx="16" fill="#0F2318"/>
+            <text x="4" y="54" font-family="Fraunces, serif" font-size="58" font-weight="900" fill="#ffffff" letter-spacing="-1">O</text>
+            <path d="M8 40 C16 20, 24 20, 32 30 C40 40, 48 40, 56 30" fill="none" stroke="#1D9E75" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1 id="wTitle">Ciao! Sono OndaMente</h1>
+        <p id="wDesc">Accedi per iniziare a studiare.</p>
+        <div class="wc-grid">
+          <div class="wc" onclick="qa('Spiegami i concetti fondamentali, un passo alla volta')"><div class="ci">📖</div><div class="ct">Spiegazione guidata</div><div class="cd">Passo dopo passo, senza fretta</div></div>
+          <div class="wc" onclick="qa('Fai una sola domanda da esame')"><div class="ci">🎯</div><div class="ct">Una domanda</div><div class="cd">Quiz uno alla volta</div></div>
+          <div class="wc" onclick="qa('Crea una mappa concettuale degli argomenti principali')"><div class="ci">🗺️</div><div class="ct">Mappa concettuale</div><div class="cd">Visualizza i collegamenti</div></div>
+          <div class="wc" onclick="qa('Dammi i 7 concetti chiave da ricordare per l\'esame')"><div class="ci">⚡</div><div class="ct">7 concetti chiave</div><div class="cd">Solo l'essenziale</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="input-area">
+      <div class="qa-row">
+        <button class="qa-btn" onclick="qa('Spiega in modo semplice')">📖 Spiega</button>
+        <button class="qa-btn" onclick="qa('Fai una sola domanda')">🎯 Una domanda</button>
+        <button class="qa-btn" onclick="qa('Dai un esempio pratico')">💡 Esempio</button>
+        <button class="qa-btn dsa-qa" onclick="qa('Ripeti in modo più semplice, frasi più brevi')">🔁 Più semplice</button>
+        <button class="qa-btn dsa-qa" onclick="qa('Guidami passo dopo passo su questo argomento')">🧩 Guidami</button>
+      </div>
+      <div class="inp-row">
+        <textarea id="userInput" placeholder="Chiedi qualcosa sulla tua materia..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="mic-btn" id="micBtn" onclick="sttToggle()" title="Parla" style="position:relative;">🎤</button>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ── CONFIG ──────────────────────────────────────────────────────────────
+   ISTRUZIONI SETUP:
+   1. Crea un progetto su https://supabase.com
+   2. Copia Project URL e anon key da: Settings → API
+   3. Esegui lo schema SQL da /supabase/schema.sql nel SQL Editor
+   4. Crea un Cloudflare Worker con il codice in /cloudflare/worker.js
+      e sostituisci API_ENDPOINT con il tuo worker URL
+   La chiave Anthropic NON va mai nel frontend — solo nel Worker.        */
+const SB_URL       = 'https://rcqzyagyycipigemyelh.supabase.co';
+const SB_KEY       = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcXp5YWd5eWNpcGlnZW15ZWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODc4OTQsImV4cCI6MjA5NDc2Mzg5NH0.3g91LBklWICsd-rnA7G_HQEhLHe-S-ImP3HrggTUIwM';
+const API_ENDPOINT = 'https://ondamente.leonardo-stancati.workers.dev/api/chat';
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+/* ── STATO ── */
+let currentUser = null, userProfile = {}, currentSubject = null;
+let currentConvId = null, conversationHistory = [], currentMode = 'spiega';
+let isLoading = false, sel = { anno:'', stile:'', esame:'' }, pendingBook = null;
+let authMode = 'login', dsaSel = [], strSel = [];
+
+/* ════ AUTH ════ */
+function switchTab(m) {
+  authMode = m;
+  document.getElementById('tabLogin').classList.toggle('active', m==='login');
+  document.getElementById('tabReg').classList.toggle('active', m==='register');
+  document.getElementById('authBtn').textContent = m==='login' ? 'Accedi' : 'Registrati';
+  clearMsg();
+}
+function authKey(e) { if(e.key==='Enter') handleAuth(); }
+async function handleAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPass').value;
+  if(!email||!pass) { showMsg('err','Inserisci email e password.'); return; }
+  const btn = document.getElementById('authBtn');
+  btn.disabled=true; btn.textContent='⏳...'; clearMsg();
+  const fn = authMode==='login'
+    ? sb.auth.signInWithPassword({ email, password:pass })
+    : sb.auth.signUp({ email, password:pass });
+  const { error } = await fn;
+  if(error) showMsg('err', error.message);
+  else if(authMode==='register') showMsg('ok','Account creato! Accesso in corso...');
+  btn.disabled=false; btn.textContent = authMode==='login'?'Accedi':'Registrati';
+}
+async function handleLogout() {
+  try { sb.auth.signOut(); } catch(e) {}
+  localStorage.clear(); sessionStorage.clear();
+  window.location.href = window.location.pathname + '?t=' + Date.now();
+}
+function showMsg(t,m) { const e=document.getElementById(t==='err'?'authErr':'authOk'); e.textContent=m; e.classList.add('visible'); }
+function clearMsg() { ['authErr','authOk'].forEach(id=>document.getElementById(id)?.classList.remove('visible')); }
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if(session?.user) {
+    currentUser = session.user;
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('userEmail').textContent = currentUser.email;
+    await loadAfterLogin();
+  } else {
+    document.getElementById('authScreen').classList.remove('hidden');
+  }
+});
+
+async function loadAfterLogin() {
+  const { data: p } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if(p) userProfile = p;
+  const { data: subjects } = await sb.from('subjects').select('*').eq('user_id', currentUser.id).order('updated_at',{ascending:false});
+  if(!subjects || subjects.length===0) { showOnboarding(); }
+  else if(subjects.length===1) { await loadSubject(subjects[0]); }
+  else { renderSubjectScreen(subjects); }
+}
+
+/* ════ SUBJECT SCREEN ════ */
+function renderSubjectScreen(subjects) {
+  const scr = document.getElementById('subjScreen');
+  const list = document.getElementById('subjList');
+  scr.classList.remove('hidden');
+  list.innerHTML = '';
+  subjects.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'subj-item';
+    const dsaNote = s.dsa_profile ? ` · 🧩 ${s.dsa_profile}` : '';
+    d.innerHTML = `<div><div class="subj-item-name">${s.materia}</div><div class="subj-item-meta">${userProfile.corso||''}${userProfile.anno?' · '+userProfile.anno:''}${dsaNote}</div>${s.book_name?`<div class="subj-item-book">📄 ${s.book_name}</div>`:''}</div><span style="color:var(--text-dim);font-size:18px;">›</span>`;
+    d.onclick = () => { scr.classList.add('hidden'); loadSubject(s); };
+    list.appendChild(d);
+  });
+}
+
+async function openSubjectScreen() {
+  closeDrawer();
+  const { data: subjects } = await sb.from('subjects').select('*').eq('user_id', currentUser.id).order('updated_at',{ascending:false});
+  if(!subjects||subjects.length===0) { showOnboarding(); return; }
+  renderSubjectScreen(subjects);
+}
+
+function startNewSubject() {
+  document.getElementById('subjScreen').classList.add('hidden');
+  document.getElementById('s1').classList.add('hidden');
+  document.getElementById('s2').classList.remove('hidden');
+  document.getElementById('s3').classList.add('hidden');
+  document.getElementById('s4').classList.add('hidden');
+  document.getElementById('d1').className='sdot d';
+  document.getElementById('d2').className='sdot a';
+  document.getElementById('d3').className='sdot';
+  document.getElementById('d4').className='sdot';
+  document.getElementById('materia').value='';
+  sel.stile=''; sel.esame=''; dsaSel=[]; strSel=[];
+  document.querySelectorAll('#s2 .ob-chip,#s3 .ob-chip').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('upProg').classList.remove('v');
+  document.getElementById('upOk').classList.remove('v');
+  document.getElementById('upZone').style.display='';
+  document.getElementById('btnFine').textContent='🚀 Inizia senza libro';
+  pendingBook = null;
+  document.getElementById('onboarding').classList.remove('hidden');
+}
+
+async function loadSubject(subject) {
+  currentSubject = subject;
+  currentConvId = null;
+  conversationHistory = [];
+  // Recupera DSA da localStorage se non già nell'oggetto (soggetti caricati dal DB non hanno la colonna)
+  if(!currentSubject.dsa_profile && currentUser) {
+    currentSubject.dsa_profile = localStorage.getItem('sm_dsa_' + currentUser.id) || null;
+  }
+  if(!currentSubject.dsa_tools && currentUser) {
+    currentSubject.dsa_tools = localStorage.getItem('sm_str_' + currentUser.id) || null;
+  }
+  document.getElementById('btnCambia').style.display='block';
+  if(subject.book_name) {
+    document.getElementById('bkSection').style.display='block';
+    document.getElementById('bkName').textContent = subject.book_name;
+  } else {
+    document.getElementById('bkSection').style.display='none';
+  }
+  if(currentSubject.dsa_profile) {
+    document.getElementById('dsaSection').style.display='block';
+    document.getElementById('dsaTagsDisplay').innerHTML =
+      currentSubject.dsa_profile.split(',').map(d=>'<span class="dsa-tag">'+d.trim()+'</span>').join('');
+  } else {
+    document.getElementById('dsaSection').style.display='none';
+  }
+  if(subject.book_text) currentSubject.bookChunks = chunkText(subject.book_text,1200,150);
+  else currentSubject.bookChunks = [];
+  resetChatUI();
+  updateMobDrawer();
+  await loadConversations();
+}
+
+/* ════ ONBOARDING ════ */
+function showOnboarding() {
+  sel={anno:'',stile:'',esame:''}; dsaSel=[]; strSel=[];
+  setStep(1);
+  document.getElementById('onboarding').classList.remove('hidden');
+}
+
+function chip(group, el, value) {
+  el.closest('.ob-chips').querySelectorAll('.ob-chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  sel[group] = value;
+}
+function chipDsa(el, value) {
+  el.classList.toggle('sel');
+  const idx=dsaSel.indexOf(value);
+  if(idx===-1) dsaSel.push(value); else dsaSel.splice(idx,1);
+}
+function chipStr(el, value) {
+  el.classList.toggle('sel');
+  const idx=strSel.indexOf(value);
+  if(idx===-1) strSel.push(value); else strSel.splice(idx,1);
+}
+
+async function goS2() {
+  const uni=document.getElementById('uni').value.trim(), corso=document.getElementById('corso').value.trim();
+  if(!corso) { hlErr('corso'); return; }
+  await sb.from('profiles').upsert({id:currentUser.id, uni, corso, anno:sel.anno});
+  userProfile = {uni, corso, anno:sel.anno};
+  setStep(2);
+}
+async function goS3() {
+  const materia = document.getElementById('materia').value.trim();
+  if(!materia) { hlErr('materia'); return; }
+  sel.materiaVal = materia;
+  setStep(3);
+}
+function goS4() { setStep(4); }
+
+function setStep(n) {
+  for(let i=1;i<=4;i++){
+    document.getElementById('s'+i).classList.toggle('hidden', i!==n);
+    const dot=document.getElementById('d'+i);
+    dot.className = i<n ? 'sdot d' : i===n ? 'sdot a' : 'sdot';
+  }
+}
+
+async function finishOnboarding() {
+  const btn = document.getElementById('btnFine');
+  btn.disabled=true; btn.textContent='⏳ Salvataggio...';
+  // Salva DSA solo in localStorage — non nel DB (colonne non presenti)
+  const dsaStr = dsaSel.join(', ') || null;
+  const strStr = strSel.join(',') || null;
+  if(dsaStr) localStorage.setItem('sm_dsa_' + currentUser.id, dsaStr);
+  if(strStr) localStorage.setItem('sm_str_' + currentUser.id, strStr);
+  // Insert con SOLO i campi che esistono nel DB originale
+  const { data: subj, error } = await sb.from('subjects').insert({
+    user_id:currentUser.id, materia:sel.materiaVal,
+    stile:sel.stile, esame:sel.esame,
+    book_name:pendingBook?.name||null, book_text:pendingBook?.text||null
+  }).select().single();
+  btn.disabled=false;
+  if(error) { btn.textContent='🚀 Inizia senza libro'; console.error('Supabase error:', error); return; }
+  // Inietta DSA nell'oggetto subject in memoria
+  subj.dsa_profile = dsaStr;
+  subj.dsa_tools   = strStr;
+  document.getElementById('onboarding').classList.add('hidden');
+  await loadSubject(subj);
+}
+
+function hlErr(id) {
+  const el=document.getElementById(id);
+  el.style.borderColor='var(--danger)'; el.focus();
+  setTimeout(()=>el.style.borderColor='',2000);
+}
+
+/* ── UPLOAD PDF ── */
+function handleFile(input) {
+  const file = input.files[0]; if(!file) return;
+  document.getElementById('upFn').textContent = file.name;
+  document.getElementById('upProg').classList.add('v');
+  document.getElementById('upZone').style.display='none';
+  let pct=0;
+  const fill=document.getElementById('upFill'), pctEl=document.getElementById('upPct');
+  const iv = setInterval(()=>{
+    pct+=Math.random()*12; if(pct>=90){pct=90;clearInterval(iv);}
+    fill.style.width=pct+'%'; pctEl.textContent=Math.round(pct)+'%';
+  },150);
+  readPDF(file).then(text=>{
+    clearInterval(iv); fill.style.width='100%'; pctEl.textContent='100%';
+    setTimeout(()=>{
+      document.getElementById('upProg').classList.remove('v');
+      document.getElementById('upOk').classList.add('v');
+      document.getElementById('upOkTxt').textContent=`"${file.name}" caricato!`;
+      document.getElementById('btnFine').textContent='🚀 Inizia a studiare!';
+      pendingBook={name:file.name, text};
+    },300);
+  });
+}
+
+async function readPDF(file) {
+  return new Promise(resolve=>{
+    if(window.pdfjsLib) { extractPDF(file, resolve); return; }
+    const sc=document.createElement('script');
+    sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    sc.onload=()=>{ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; extractPDF(file,resolve); };
+    document.head.appendChild(sc);
+  });
+}
+async function extractPDF(file, resolve) {
+  const ab=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+  let txt='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const pg=await pdf.getPage(i); const tc=await pg.getTextContent();
+    txt+=tc.items.map(s=>s.str).join(' ')+'\n';
+  }
+  resolve(txt);
+}
+
+const upZone=document.getElementById('upZone');
+upZone.addEventListener('dragover',e=>{e.preventDefault();upZone.classList.add('drag');});
+upZone.addEventListener('dragleave',()=>upZone.classList.remove('drag'));
+upZone.addEventListener('drop',e=>{
+  e.preventDefault();upZone.classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f?.type==='application/pdf'){document.getElementById('fileInput').files=e.dataTransfer.files;handleFile(document.getElementById('fileInput'));}
+});
+
+/* ════ CONVERSAZIONI ════ */
+async function loadConversations() {
+  if(!currentSubject) return;
+  const {data:convs} = await sb.from('conversations').select('*').eq('subject_id',currentSubject.id).order('updated_at',{ascending:false}).limit(20);
+  document.getElementById('convSection').style.display='block';
+  renderConvList(convs||[]);
+  if(convs&&convs.length>0) await openConversation(convs[0].id);
+  else await newConversation();
+}
+
+function renderConvList(convs) {
+  const list=document.getElementById('convList');
+  list.innerHTML='';
+  convs.forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='tbtn'+(c.id===currentConvId?' active':'');
+    btn.textContent=(c.title||'Chat').substring(0,30);
+    btn.dataset.id=c.id;
+    btn.onclick=()=>openConversation(c.id);
+    list.appendChild(btn);
+  });
+}
+
+async function newConversation() {
+  if(!currentSubject) return;
+  conversationHistory = [];
+  // Prova a creare la conversazione su Supabase, ma non blocca se fallisce
+  try {
+    const {data:conv,error} = await sb.from('conversations')
+      .insert({user_id:currentUser.id, subject_id:currentSubject.id, title:'Nuova chat'})
+      .select().single();
+    if(conv && !error) {
+      currentConvId = conv.id;
+    } else {
+      // Fallback: ID locale — la chat funziona, solo non salva su DB
+      currentConvId = 'local_' + Date.now();
+      console.warn('Conversazione in modalità locale (DB non disponibile):', error);
+    }
+  } catch(e) {
+    currentConvId = 'local_' + Date.now();
+    console.warn('Conversazione in modalità locale:', e.message);
+  }
+  resetChatUI();
+  const btn = document.createElement('button');
+  btn.className='tbtn active'; btn.textContent='Nuova chat'; btn.dataset.id=currentConvId;
+  btn.onclick=()=>openConversation(currentConvId);
+  document.getElementById('convList').prepend(btn);
+  document.querySelectorAll('#convList .tbtn').forEach(b=>{ if(b!==btn) b.classList.remove('active'); });
+}
+
+async function openConversation(convId) {
+  currentConvId=convId; conversationHistory=[];
+  document.querySelectorAll('#convList .tbtn').forEach(b=>b.classList.toggle('active',b.dataset.id===convId));
+  const {data:msgs} = await sb.from('messages').select('*').eq('conversation_id',convId).order('created_at',{ascending:true});
+  const el=document.getElementById('messages');
+  el.innerHTML='';
+  if(!msgs||msgs.length===0) { resetChatUI(); return; }
+  msgs.forEach(m=>{ conversationHistory.push({role:m.role,content:m.content}); m.role==='user'?appendUserUI(m.content):appendAIUI(m.content); });
+  el.scrollTop=el.scrollHeight;
+}
+
+function resetChatUI() {
+  const dsa = currentSubject?.dsa_profile ? ` · 🧩 ${currentSubject.dsa_profile}` : '';
+  document.getElementById('messages').innerHTML=`<div class="welcome" id="welcome"><div class="welcome-icon"><svg width="48" height="48" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#0F2318"/><text x="4" y="54" font-family="Fraunces, serif" font-size="58" font-weight="900" fill="#ffffff" letter-spacing="-1">O</text><path d="M8 40 C16 20, 24 20, 32 30 C40 40, 48 40, 56 30" fill="none" stroke="#1D9E75" stroke-width="3.5" stroke-linecap="round"/></svg></div><h1>Studia: ${currentSubject?.materia||''}</h1><p>${userProfile.corso||''}${dsa}</p><div class="wc-grid"><div class="wc" onclick="qa('Spiegami i concetti fondamentali, un passo alla volta')"><div class="ci">📖</div><div class="ct">Spiegazione guidata</div><div class="cd">Passo dopo passo</div></div><div class="wc" onclick="qa('Fai una sola domanda da esame')"><div class="ci">🎯</div><div class="ct">Una domanda</div><div class="cd">Quiz uno alla volta</div></div><div class="wc" onclick="qa('Crea una mappa concettuale')"><div class="ci">🗺️</div><div class="ct">Mappa concettuale</div><div class="cd">Visualizza i collegamenti</div></div><div class="wc" onclick="qa('Dammi i 7 concetti chiave per l\\'esame')"><div class="ci">⚡</div><div class="ct">7 concetti chiave</div><div class="cd">Solo l\\'essenziale</div></div></div></div>`;
+}
+
+/* ════ CHAT ════ */
+function setMode(m) {
+  currentMode = m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mode-'+m).classList.add('active');
+  // Attiva o disattiva TTS
+  if(m === 'audio') { ttsActivate(); } else { ttsDeactivate(); }
+  // Sincronizza drawer mobile
+  syncMobDrawer();
+  if(!currentSubject) return;
+  const avvio = {
+    quiz:        'Fai una sola domanda di quiz sulla materia e aspetta la mia risposta',
+    mappa:       'Crea una mappa concettuale degli argomenti principali',
+    ripasso:     'Fai un ripasso rapido con i 7 concetti fondamentali',
+    scaffolding: "Guidami passo dopo passo sull'argomento principale. Inizia chiedendo cosa so già.",
+    audio:       'Ciao. Sono pronto. Dimmi su cosa vuoi che ti spieghi.',
+    spiega:      null
+  };
+  if(avvio[m]) sendUserMessage(avvio[m]);
+}
+function qa(t) { sendUserMessage(t); }
+function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; }
+function sendMessage() { const inp=document.getElementById('userInput'),t=inp.value.trim(); if(!t||isLoading) return; inp.value='';inp.style.height='auto'; sendUserMessage(t); }
+
+async function sendUserMessage(text) {
+  hideWelcome(); appendUserUI(text);
+  conversationHistory.push({role:'user',content:text});
+  showTyping();
+  // Salvataggio Supabase fire-and-forget — non blocca mai callAPI
+  const isLocal = !currentConvId || currentConvId.startsWith('local_');
+  if(!isLocal) {
+    sb.from('messages').insert({conversation_id:currentConvId,role:'user',content:text}).then(()=>{});
+    if(conversationHistory.length===1) {
+      const title=text.substring(0,40);
+      sb.from('conversations').update({title,updated_at:new Date().toISOString()}).eq('id',currentConvId).then(()=>{});
+      document.querySelectorAll('#convList .tbtn[data-id="'+currentConvId+'"]').forEach(b=>b.textContent=title);
+    }
+  }
+  await callAPI();
+}
+
+function hideWelcome() { document.getElementById('welcome')?.classList.add('hidden'); }
+function appendUserUI(text) {
+  const el=document.getElementById('messages');
+  const d=document.createElement('div');
+  d.className='message user';
+  d.innerHTML='<div class="avatar user">👤</div><div class="bubble">'+esc(text)+'</div>';
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+  updateMessagesPadding();
+}
+function appendAIUI(text) {
+  const el=document.getElementById('messages');
+  const d=document.createElement('div');
+  d.className='message ai';
+  const b=document.createElement('div');
+  b.className='bubble';
+  b.innerHTML=fmt(text);
+  d.innerHTML='<div class="avatar ai">🧩</div>';
+  d.appendChild(b);
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+  updateMessagesPadding();
+  // Legge automaticamente se modalità Audio è attiva
+  if(ttsEnabled) ttsSpeak(text);
+}
+function showTyping() { isLoading=true; document.getElementById('sendBtn').disabled=true; const el=document.getElementById('messages'); const d=document.createElement('div'); d.className='typing-indicator'; d.id='typing'; d.innerHTML='<div class="avatar ai">🧩</div><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>'; el.appendChild(d); el.scrollTop=el.scrollHeight; }
+function removeTyping() { isLoading=false; document.getElementById('sendBtn').disabled=false; document.getElementById('typing')?.remove(); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showSaving() { document.getElementById('saveInd').classList.add('v'); }
+function hideSaving() { document.getElementById('saveInd').classList.remove('v'); }
+
+function fmt(text) {
+  let h=text
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/💡 (.+)/g,'<div class="ib">💡 $1</div>')
+    .replace(/✅ (.+)/g,'<div class="ok-box">✅ $1</div>')
+    .replace(/^[-•] (.+)$/gm,'<li>$1</li>').replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<li>.*?<\/li>\n?)+/gs,m=>'<ul>'+m+'</ul>');
+  h=h.split('\n\n').map(p=>p.trim()).filter(p=>p&&!p.startsWith('<')).reduce((a,p)=>a.replace(p,`<p>${p}</p>`),h);
+  return h||`<p>${text}</p>`;
+}
+
+function toggleSpacing() {
+  document.body.classList.toggle('spacing-plus');
+  const on = document.body.classList.contains('spacing-plus');
+  document.getElementById('spacingBtn').classList.toggle('on', on);
+  const mobBtn = document.getElementById('mobSpacingBtn');
+  if(mobBtn) {
+    mobBtn.style.color = on ? 'var(--accent2)' : '';
+    const sp = mobBtn.querySelector('span');
+    if(sp) sp.textContent = on ? 'Aa ✓' : 'Aa';
+  }
+}
+
+/* ════ MOBILE NAV ════ */
+function toggleDrawer() {
+  const d = document.getElementById('mobDrawer');
+  const o = document.getElementById('mobOverlay');
+  const isOpen = d.classList.contains('open');
+  if(isOpen) { d.classList.remove('open'); o.classList.remove('on'); }
+  else        { d.classList.add('open');    o.classList.add('on'); }
+}
+function closeDrawer() {
+  document.getElementById('mobDrawer')?.classList.remove('open');
+  document.getElementById('mobOverlay')?.classList.remove('on');
+}
+function bnavSelect(tab) {
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnav-'+tab)?.classList.add('active');
+  closeDrawer();
+}
+function bnavAudio() {
+  if(currentMode === 'audio') {
+    // Già in audio: disattiva
+    setMode('spiega');
+    document.getElementById('bnav-audio')?.classList.remove('active');
+  } else {
+    setMode('audio');
+    document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('bnav-audio')?.classList.add('active');
+  }
+  closeDrawer();
+}
+function bnavNuova() {
+  closeDrawer();
+  if(currentSubject) newConversation();
+  else showOnboarding();
+}
+
+// Sincronizza i mode-btn del drawer mobile con quelli della sidebar
+function syncMobDrawer() {
+  document.querySelectorAll('.mob-drawer .mode-btn').forEach(b=>b.classList.remove('active'));
+  const mob = document.getElementById('mob-mode-'+currentMode);
+  if(mob) mob.classList.add('active');
+}
+
+// Aggiorna sezioni DSA e libro nel drawer mobile
+function updateMobDrawer() {
+  const dsa = currentSubject?.dsa_profile;
+  const str = currentSubject?.dsa_tools;
+  const bk  = currentSubject?.book_name;
+
+  const dsaSec     = document.getElementById('mobDsaSection');
+  const dsaActions = document.getElementById('mobDsaActions');
+  const bkSec      = document.getElementById('mobBkSection');
+  const spacingBtn = document.getElementById('mobSpacingBtn');
+
+  // Sezione profilo DSA + strumenti
+  if(dsaSec && dsa) {
+    dsaSec.style.display = 'block';
+    document.getElementById('mobDsaTags').innerHTML =
+      dsa.split(',').map(d => '<span class="dsa-tag">🧩 ' + d.trim() + '</span>').join('');
+    // Strumenti compensativi
+    const strEl = document.getElementById('mobStrumentiTags');
+    if(strEl && str) {
+      const icons = { sintesi_vocale:'🔊', mappe_mentali:'🗺️', tempi_aggiuntivi:'⏱️' };
+      strEl.innerHTML = str.split(',').map(s => {
+        const k = s.trim();
+        return '<span class="dsa-tag" style="background:rgba(78,205,196,0.12);color:var(--accent2);">'
+          + (icons[k]||'') + ' ' + k.replace(/_/g,' ') + '</span>';
+      }).join('');
+    } else if(strEl) { strEl.innerHTML = ''; }
+  } else if(dsaSec) { dsaSec.style.display = 'none'; }
+
+  // Sezione azioni DSA — visibile se profilo attivo
+  if(dsaActions) dsaActions.style.display = dsa ? 'block' : 'none';
+
+  // Libro
+  if(bkSec && bk) {
+    bkSec.style.display = 'block';
+    document.getElementById('mobBkName').textContent = bk;
+  } else if(bkSec) { bkSec.style.display = 'none'; }
+
+  // Stato spaziatura
+  if(spacingBtn) {
+    const on = document.body.classList.contains('spacing-plus');
+    spacingBtn.style.color = on ? 'var(--accent2)' : '';
+    spacingBtn.querySelector('span').textContent = on ? 'Aa ✓' : 'Aa';
+  }
+}
+
+/* ════ TTS — SINTESI VOCALE NATIVA ════ */
+let ttsEnabled = false;
+let ttsUtterance = null;
+let ttsLastText = '';
+
+function ttsInit() {
+  if(!window.speechSynthesis) return;
+  // Popola il selettore voci con quelle italiane (o tutte se non disponibili)
+  function loadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    const sel = document.getElementById('ttsVoice');
+    if(!sel) return;
+    sel.innerHTML = '';
+    const itVoices = voices.filter(v => v.lang.startsWith('it'));
+    const list = itVoices.length ? itVoices : voices.slice(0, 10);
+    list.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = v.name.replace(/Microsoft |Google /, '').substring(0, 20);
+      opt.dataset.lang = v.lang;
+      sel.appendChild(opt);
+    });
+  }
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function ttsSpeak(text) {
+  if(!window.speechSynthesis || !ttsEnabled) return;
+  // Pulisce il testo da markdown e simboli
+  const clean = text
+    .replace(/<[^>]+>/g, ' ')        // rimuove HTML
+    .replace(/\*\*(.+?)\*\*/g, '$1') // grassetto
+    .replace(/\*(.+?)\*/g, '$1')     // corsivo
+    .replace(/#{1,3}\s/g, '')         // titoli
+    .replace(/[-•]\s/g, '')           // bullet
+    .replace(/→|➤|🧩|📌|✅|❓|🔁|💡|⚠️|📖|🎯|🗺️|⚡/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if(!clean) return;
+  ttsLastText = clean;
+
+  window.speechSynthesis.cancel();
+  ttsUtterance = new SpeechSynthesisUtterance(clean);
+  ttsUtterance.lang = 'it-IT';
+  ttsUtterance.rate = parseFloat(document.getElementById('ttsSpeed')?.value || '0.9');
+
+  // Seleziona la voce scelta
+  const voiceSel = document.getElementById('ttsVoice');
+  if(voiceSel && voiceSel.options.length > 0) {
+    const voices = window.speechSynthesis.getVoices();
+    const itVoices = voices.filter(v => v.lang.startsWith('it'));
+    const list = itVoices.length ? itVoices : voices.slice(0, 10);
+    const idx = parseInt(voiceSel.value) || 0;
+    if(list[idx]) ttsUtterance.voice = list[idx];
+  }
+
+  ttsUtterance.onstart = function() {
+    document.getElementById('ttsDot')?.classList.add('on');
+    const btn = document.getElementById('ttsPlayBtn');
+    if(btn) btn.textContent = '⏸ In lettura...';
+  };
+  ttsUtterance.onend = ttsUtterance.onerror = function() {
+    document.getElementById('ttsDot')?.classList.remove('on');
+    const btn = document.getElementById('ttsPlayBtn');
+    if(btn) btn.textContent = '▶ Rileggi';
+  };
+
+  window.speechSynthesis.speak(ttsUtterance);
+}
+
+function ttsStop() {
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  document.getElementById('ttsDot')?.classList.remove('on');
+  const btn = document.getElementById('ttsPlayBtn');
+  if(btn) btn.textContent = '▶ Rileggi';
+}
+
+function ttsToggle() {
+  if(window.speechSynthesis?.speaking) {
+    ttsStop();
+  } else {
+    ttsSpeak(ttsLastText);
+  }
+}
+
+function ttsSetSpeed(val) {
+  // Se sta parlando, ricomincia con la nuova velocità
+  if(window.speechSynthesis?.speaking && ttsLastText) {
+    ttsStop();
+    setTimeout(() => ttsSpeak(ttsLastText), 100);
+  }
+}
+
+function ttsActivate() {
+  ttsEnabled = true;
+  document.getElementById('ttsBar')?.classList.add('visible');
+  ttsInit();
+}
+
+function ttsDeactivate() {
+  ttsEnabled = false;
+  ttsStop();
+  document.getElementById('ttsBar')?.classList.remove('visible');
+}
+
+/* ════ MOBILE LAYOUT — padding messaggi dinamico ════ */
+function updateMessagesPadding() {
+  if(window.innerWidth > 768) return;
+  const inputArea = document.querySelector('.input-area');
+  const bottomNav = document.querySelector('.bottom-nav');
+  const messages  = document.getElementById('messages');
+  if(!inputArea || !messages) return;
+  const inputH  = inputArea.offsetHeight || 0;
+  const bottomH = bottomNav ? (bottomNav.offsetHeight || 58) : 0;
+  // Extra margine di sicurezza 16px
+  messages.style.paddingBottom = (inputH + bottomH + 16) + 'px';
+}
+
+// Aggiorna al resize della finestra e all'orientamento
+window.addEventListener('resize', updateMessagesPadding);
+window.addEventListener('orientationchange', () => setTimeout(updateMessagesPadding, 300));
+
+// Aggiorna anche quando la textarea cambia altezza
+const _autoResize = autoResize;
+function autoResize(el) {
+  _autoResize(el);
+  updateMessagesPadding();
+}
+let sttRecognition = null;
+let sttActive = false;
+
+function sttInit() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = document.getElementById('micBtn');
+  if(!SpeechRecognition) {
+    // Browser non supportato: nasconde il tasto
+    if(micBtn) micBtn.style.display = 'none';
+    return;
+  }
+  // Mostra il tasto se supportato
+  if(micBtn) micBtn.classList.add('supported');
+
+  sttRecognition = new SpeechRecognition();
+  sttRecognition.lang = 'it-IT';
+  sttRecognition.continuous = false;       // una frase alla volta
+  sttRecognition.interimResults = true;    // mostra testo mentre parla
+  sttRecognition.maxAlternatives = 1;
+
+  sttRecognition.onstart = function() {
+    sttActive = true;
+    if(micBtn) { micBtn.classList.add('recording'); micBtn.textContent = '⏹'; }
+    const inp = document.getElementById('userInput');
+    if(inp) inp.placeholder = '🎤 Sto ascoltando...';
+  };
+
+  sttRecognition.onresult = function(e) {
+    const inp = document.getElementById('userInput');
+    if(!inp) return;
+    let interim = '', final = '';
+    for(let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    // Aggiunge il testo nella textarea (preserva eventuale testo già scritto)
+    const existing = inp.value.replace(/🎤.*$/, '').trimEnd();
+    inp.value = existing + (existing && final ? ' ' : '') + final + (interim ? ' 🎤 ' + interim : '');
+    autoResize(inp);
+  };
+
+  sttRecognition.onend = function() {
+    sttActive = false;
+    if(micBtn) { micBtn.classList.remove('recording'); micBtn.textContent = '🎤'; }
+    const inp = document.getElementById('userInput');
+    if(inp) {
+      // Pulisce il marker 🎤 dal testo finale
+      inp.value = inp.value.replace(/\s*🎤.*$/, '').trim();
+      inp.placeholder = 'Chiedi qualcosa sulla tua materia...';
+      autoResize(inp);
+      // Se ha detto qualcosa, focus sulla textarea
+      if(inp.value) inp.focus();
+    }
+  };
+
+  sttRecognition.onerror = function(e) {
+    sttActive = false;
+    if(micBtn) { micBtn.classList.remove('recording'); micBtn.textContent = '🎤'; }
+    const inp = document.getElementById('userInput');
+    if(inp) {
+      inp.value = inp.value.replace(/\s*🎤.*$/, '').trim();
+      inp.placeholder = 'Chiedi qualcosa sulla tua materia...';
+    }
+    // Errori comuni: 'not-allowed' = permesso microfono negato
+    if(e.error === 'not-allowed') {
+      appendAIUI('⚠️ Permesso microfono negato. Abilitalo nelle impostazioni del browser.');
+    }
+  };
+}
+
+function sttToggle() {
+  if(!sttRecognition) {
+    // Prova a inizializzare se non ancora fatto
+    sttInit();
+    if(!sttRecognition) return;
+  }
+  if(sttActive) {
+    sttRecognition.stop();
+  } else {
+    try {
+      sttRecognition.start();
+    } catch(e) {
+      console.warn('STT start error:', e.message);
+    }
+  }
+}
+
+// Inizializza STT al caricamento
+document.addEventListener('DOMContentLoaded', function() {
+  sttInit();
+  updateMessagesPadding();
+});
+const SW=new Set(['il','lo','la','i','gli','le','un','uno','una','di','del','della','dei','degli','delle','a','ad','al','alla','ai','agli','alle','da','dal','dalla','dai','dagli','dalle','in','nel','nella','nei','negli','nelle','su','sul','sulla','sui','sugli','sulle','con','per','tra','fra','che','chi','cui','non','più','ma','se','come','quando','dove','mentre','e','o','è','si','ci','ne','mi','ti','vi','li','lo','ha','ho','hanno','era','sono','fu','sia','sta','stato','anche','così','già','poi','però','questo','questa','questi','queste','quello','quella','quelli','quelle','tutto','tutti','tutta','tutte','ogni','molto','altri','altre','altro','altra','suo','sua','suoi','sue','loro','mio','mia','miei','mie','tuo','tua','tuoi','tue','nostro','nostra','nostri','nostre','vostro','vostra','vostri','vostre','cosa','quale','quali','quanto','quanta','quanti','quante','può','deve','viene','vengono','essere','fare','avere','perché','quindi','allora','prima','dopo','sempre','mai','spesso','ancora','solo','proprio','invece','cioè','ossia','ovvero','oppure','durante','secondo','rispetto','circa','oltre','entro','fino','verso','presso','sopra','sotto','dentro','fuori','insieme','senza','contro','poiché','siccome','dato','parte','caso','modo','fatto','punto','base','causa','fine','tempo','anno','anni','mese','mesi','giorno','giorni','volta','volte','livello','ambito','campo','area','aspetto','forma','tipo']);
+function tok(t){return t.toLowerCase().replace(/[^a-zàáèéìíòóùú\s]/gi,' ').split(/\s+/).filter(w=>w.length>2&&!SW.has(w));}
+function tfidf(q,c){const qt=tok(q),ct=tok(c),cs=new Set(ct);let s=0;for(const w of qt){if(cs.has(w))s+=2;for(const x of cs){if(x.includes(w)||w.includes(x))s+=0.5;}}return s;}
+function getChunks(q,n=4){const ch=currentSubject?.bookChunks||[];if(!ch.length)return[];return ch.map((c,i)=>({i,c,s:tfidf(q,c)})).sort((a,b)=>b.s-a.s).slice(0,n).filter(x=>x.s>0).map(x=>x.c);}
+function chunkText(t,sz=1200,ov=150){const w=t.split(/\s+/),ch=[];let s=0;while(s<w.length){const c=w.slice(s,s+sz).join(' ');if(c.trim())ch.push(c);s+=sz-ov;}return ch;}
+
+/* ════ SYSTEM PROMPT DSA ════ */
+function buildSP() {
+  const {uni,corso,anno} = userProfile;
+  const {materia,stile,esame,book_name,dsa_profile,dsa_tools} = currentSubject||{};
+  const dsa = dsa_profile || '';
+  const strumenti = dsa_tools || '';
+
+  // -- Adattamenti per profilo DSA --
+  let dsaAdapt = '';
+  if(dsa) {
+    dsaAdapt += '\n\n## ADATTAMENTI DSA ATTIVI — profilo: ' + dsa + '\n';
+
+    if(dsa.includes('Dislessia') || dsa.includes('Disortografia')) {
+      dsaAdapt += '\n### Dislessia/Disortografia:\n'
+        + '- Frasi BREVI: max 15-20 parole. Mai subordinate complesse.\n'
+        + '- Ogni concetto: paragrafo separato. Mai blocchi compatti.\n'
+        + '- Grassetto sempre sui termini chiave. Formato: TERMINE = [spiegazione semplice]\n'
+        + '- Struttura con titoli brevi. Elenchi puntati invece di testo continuo.\n'
+        + '- Privilegia sempre la COMPRENSIONE del contenuto rispetto alla decodifica (MIUR 4.3.1).\n'
+        + '- Semplifica il lessico e la complessità sintattica.';
+    }
+
+    if(dsa.includes('ADHD')) {
+      dsaAdapt += '\n### ADHD:\n'
+        + '- Inizia SEMPRE con: "Stiamo parlando di: [tema in 4 parole]"\n'
+        + '- Chunk numerati 1) 2) 3) — max 4-5 righe per chunk, poi riga vuota.\n'
+        + '- Dopo ogni spiegazione: UNA domanda di controllo. "Fin qui tutto chiaro?"\n'
+        + '- Segnali visivi: CHIAVE = concetto chiave | OK = da ricordare | DOMANDA | RIPASSO\n'
+        + '- Zero divagazioni. Solo il necessario.';
+    }
+
+    if(dsa.includes('Discalculia')) {
+      dsaAdapt += '\n### Discalculia:\n'
+        + '- Numeri sempre accompagnati da spiegazione verbale.\n'
+        + '- Analogie qualitative, non quantitative.\n'
+        + '- Sequenze: Primo -> Poi -> Infine (non 1, 2, 3).\n'
+        + '- ANALISI ERRORE (MIUR 4.3.3): quando lo studente sbaglia un esercizio numerico,\n'
+        + '  identifica il tipo di errore prima di correggere:\n'
+        + '  Procedurale = ha sbagliato i passaggi -> spiega il passaggio corretto\n'
+        + '  Semantico = non ha capito il significato -> riparti dal concetto\n'
+        + '  Visuospaziale = ha confuso posizione delle cifre (es. 31 vs 13) -> esempi verbali\n'
+        + '  Strategico = ha scelto il metodo sbagliato -> proponi metodo alternativo\n'
+        + '  Poi spiega specificatamente quel tipo di errore. Non dire solo "sbagliato".';
+    }
+
+    if(strumenti.includes('sintesi_vocale')) {
+      dsaAdapt += '\n### Sintesi vocale:\n'
+        + '- Frasi brevissime, punteggiatura densa.\n'
+        + '- Niente tabelle ne ASCII art. Ogni concetto su riga separata.\n'
+        + '- Abbreviazioni espanse: "eccetera" non "ecc.", "per esempio" non "es.".';
+    }
+
+    // Comorbilita: profili multipli -> difficolta maggiore della somma (MIUR 1.4)
+    const numProfili = dsa.split(',').filter(function(x){return x.trim();}).length;
+    if(numProfili > 1) {
+      dsaAdapt += '\n### COMORBILITA ATTIVA (' + numProfili + ' profili)\n'
+        + 'La presenza di piu disturbi genera difficolta SUPERIORE alla somma dei singoli (MIUR 1.4).\n'
+        + 'Applica TUTTI gli adattamenti sopra e riduci ulteriormente la complessita:\n'
+        + '- Frasi ancora piu brevi (max 10-12 parole)\n'
+        + '- Mai piu di 3 concetti nuovi per risposta\n'
+        + '- Rinforzo positivo dopo ogni risposta corretta, anche parziale';
+    }
+  }
+
+  // -- Regole psicologiche (solo se DSA) --
+  let dsaRules = '';
+  if(dsa) {
+    dsaRules = '\n\n## REGOLA ASSOLUTA — SICUREZZA PSICOLOGICA E AUTOSTIMA (MIUR 5)\n'
+      + 'Non esiste una domanda stupida. Non esiste una risposta sbagliata che meriti un giudizio.\n'
+      + 'NON USARE MAI: "come gia detto", "e semplice", "basta ricordare", "ovviamente".\n'
+      + 'Se lo studente sbaglia: "Non esatto, proviamo cosi:" poi spiega con parole diverse.\n'
+      + 'Ogni risposta corretta va rinforzata: "Esatto!", "Ottimo!", "Ci sei arrivato!"\n'
+      + 'Ogni progresso va riconosciuto, anche parziale: "Hai preso la direzione giusta."\n'
+      + 'VALUTAZIONE (MIUR 4.3.1 e 6.7): valuta SEMPRE i contenuti, MAI la forma.\n'
+      + 'Risposta concettualmente corretta = corretta, anche se formulata male o con errori ortografici.\n'
+      + 'Mai penalizzare la forma espressiva. Il successo costruisce autostima e previene l\'abbandono.';
+  }
+
+  // -- Modalita --
+  let modalitaSpiega = '**SPIEGA**: max 350 parole, 3-4 paragrafi. Dritto al punto. Analogie concrete.';
+  let modalitaQuiz   = '**QUIZ**: 1 sola domanda A/B/C/D + risposta corretta + spiegazione breve. Inizia con [QUIZ].';
+  let modalitaRipasso= '**RIPASSO**: 5-8 bullet points, ognuno max 2 righe.';
+  if(dsa) {
+    modalitaSpiega = '**SPIEGA** (DSA: frasi brevi, un concetto alla volta, grassetto sui termini): max 350 parole, 3-4 paragrafi.';
+    modalitaQuiz   = '**QUIZ** (DSA: 1 domanda alla volta, rinforzo positivo, valuta contenuti non forma): 1 sola domanda A/B/C/D. Inizia con [QUIZ].';
+    modalitaRipasso= '**RIPASSO** (DSA: esattamente 7 voci, 1 termine + 1 frase breve): solo punti chiave.';
+  }
+
+  // -- Profilo studente --
+  let profilo = '- Universita: ' + (uni||'non specificata') + '\n'
+    + '- Corso: ' + (corso||'non specificato') + '\n'
+    + '- Anno: ' + (anno||'non specificato') + '\n'
+    + '- Materia: ' + (materia||'non specificata') + '\n'
+    + '- Stile preferito: ' + (stile||'adattivo') + '\n'
+    + '- Esame: ' + (esame||'non specificato');
+  if(book_name)  profilo += '\n- Libro: "' + book_name + '"';
+  if(dsa)        profilo += '\n- Profilo DSA: ' + dsa;
+  if(strumenti)  profilo += '\n- Strumenti compensativi: ' + strumenti;
+
+  let sp = 'Sei OndaMente AI, un assistente didattico universitario';
+  if(dsa) sp += ' specializzato per studenti con DSA (Disturbi Specifici dell\'Apprendimento).';
+  else    sp += '.';
+
+  sp += '\n\n## Profilo studente:\n' + profilo;
+  sp += dsaRules;
+  sp += dsaAdapt;
+  sp += '\n\n## Modalita e limiti:\n';
+  sp += modalitaSpiega + '\n';
+  sp += modalitaQuiz + '\n';
+  sp += '**MAPPA**: max 20 nodi con frecce (->). Solo la mappa, niente testo extra.\n';
+  sp += modalitaRipasso + '\n';
+  sp += '**SCAFFOLDING**: guida con domande socratiche. Non dare la risposta completa subito.\n';
+  sp += '**AUDIO**: frasi brevissime, punteggiatura densa, niente tabelle ne simboli speciali.\n';
+  sp += '\n## Formato globale:\n';
+  sp += '- Inizia con: "Argomento: [tema breve]"\n';
+  sp += '- Grassetto per termini chiave, corsivo per definizioni\n';
+  sp += '- Termina con UNA domanda di controllo o invito al prossimo passo\n';
+  sp += '- Rispondi SEMPRE in italiano, vai dritto al punto, niente preamboli\n';
+  if(book_name) sp += '- Cita il libro quando possibile: "Il manuale spiega che..."\n';
+
+  return sp;
+}
+
+/* ════ MODE PREFIX — adattati DSA ════ */
+function getModePrefix() {
+  const dsa = currentSubject?.dsa_profile || '';
+  const numProfili = dsa ? dsa.split(',').filter(function(x){return x.trim();}).length : 0;
+  const comorbidita = numProfili > 1
+    ? ' COMORBILITA ATTIVA: difficolta superiore alla somma dei singoli disturbi. Semplifica ulteriormente. Max 3 concetti nuovi per risposta. Rinforzo dopo ogni risposta.'
+    : '';
+
+  const prefSpiega = dsa
+    ? 'MODALITA SPIEGA: max 350 parole, 3-4 paragrafi. Frasi brevi. Un concetto alla volta. Privilegia comprensione su decodifica (MIUR 4.3.1).' + comorbidita + ' Dritto al punto. '
+    : 'MODALITA SPIEGA: max 350 parole, 3-4 paragrafi. Dritto al punto. ';
+
+  const prefQuiz = dsa
+    ? 'MODALITA QUIZ: 1 sola domanda A/B/C/D. Una domanda sola, aspetta la risposta. Rinforzo positivo. REGOLA MIUR 4.3.1: valuta i CONTENUTI non la forma — risposta corretta anche se formulata male.' + comorbidita + ' Inizia con [QUIZ]. '
+    : 'MODALITA QUIZ: 1 sola domanda A/B/C/D. Risposta corretta + spiegazione breve. Inizia con [QUIZ]. ';
+
+  const prefRipasso = dsa
+    ? 'MODALITA RIPASSO: esattamente 7 voci, 1 termine + 1 frase breve.' + comorbidita + ' Solo punti chiave. '
+    : 'MODALITA RIPASSO: 5-8 bullet points, max 2 righe ognuno. Solo punti chiave. ';
+
+  const prefMappa = 'MODALITA MAPPA: mappa testuale con frecce (->), max 20 nodi. Solo la mappa.' + comorbidita + ' ';
+
+  const prefScaffolding = 'MODALITA SCAFFOLDING: guida con domande socratiche. Chiedi cosa sa gia, poi costruisci passo per passo. Non dare la risposta completa subito. Rinforza ogni risposta parzialmente corretta.' + comorbidita + ' ';
+
+  const prefAudio = 'MODALITA AUDIO (sintesi vocale): frasi max 12 parole. Punteggiatura densa. Niente tabelle. Espandi tutte le abbreviazioni. ';
+
+  return {
+    spiega:      prefSpiega,
+    quiz:        prefQuiz,
+    mappa:       prefMappa,
+    ripasso:     prefRipasso,
+    scaffolding: prefScaffolding,
+    audio:       prefAudio
+  };
+}
+
+/* ════ API CALL ════ */
+async function callAPI() {
+  const query = conversationHistory[conversationHistory.length-1].content;
+  const chunks = getChunks(query,4);
+  const ctx = chunks.join('\n\n---\n\n');
+  const mp = getModePrefix();
+  const note = ctx
+    ? `\n\n=== PASSAGGI RILEVANTI DAL LIBRO ===\n${ctx}\n\nRispondi SOLO su questi passaggi.`
+    : currentSubject?.book_name
+      ? '\n\n⚠️ Nessun passaggio specifico trovato. Rispondo con conoscenze generali.'
+      : '';
+  const sys = buildSP() + note;
+  const msgs = [{role:'user',content:(mp[currentMode]||mp.spiega)+query}];
+  if(conversationHistory.length>1) msgs.unshift(...conversationHistory.slice(-5,-1));
+  try {
+    const res = await fetch(API_ENDPOINT, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:700,
+        system:sys,
+        messages:msgs,
+        user_id:currentUser?.id||null,
+        conversation_id:currentConvId||null,
+        subject_id:currentSubject?.id||null
+      })
+    });
+    const data = await res.json();
+    if(data.error){removeTyping();appendAIUI('⚠️ Errore API: ' + data.error.message + ' (status: ' + res.status + ')');return;}
+    if(!data.content){removeTyping();appendAIUI('⚠️ Risposta vuota dal server. Status: ' + res.status + '. Risposta: ' + JSON.stringify(data).substring(0,200));return;}
+    const text = data.content?.map(c=>c.text||'').join('')||'Non riesco a rispondere al momento.';
+    removeTyping(); appendAIUI(text);
+    conversationHistory.push({role:'assistant',content:text});
+    // Salvataggio fire-and-forget
+    const isLocal = !currentConvId || currentConvId.startsWith('local_');
+    if(!isLocal) {
+      showSaving();
+      sb.from('messages').insert({conversation_id:currentConvId,role:'assistant',content:text}).then(()=>{});
+      sb.from('conversations').update({updated_at:new Date().toISOString()}).eq('id',currentConvId).then(()=>{ hideSaving(); });
+    }
+  } catch(e) {
+    removeTyping(); appendAIUI('⚠️ Errore di connessione. Riprova tra qualche secondo.');
+    conversationHistory.pop();
+  }
+}
+</script>
+</body>
+</html>
