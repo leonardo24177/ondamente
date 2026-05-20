@@ -746,7 +746,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-
 /* ── CONFIG ──────────────────────────────────────────────────────────────
    ISTRUZIONI SETUP:
    1. Crea un progetto su https://supabase.com
@@ -955,7 +954,7 @@ async function finishOnboarding() {
       const chkData = await chk.json();
       if (!chkData.allowed) {
         btn.disabled = false;
-        btn.textContent = '🚀 Inizia senza libro';
+        btn.textContent = '\u{1F680} Inizia senza libro';
         if (chkData.show_upgrade) {
           showUpgradeModal(chkData.reason);
         } else {
@@ -965,7 +964,6 @@ async function finishOnboarding() {
       }
     } catch(e) {
       console.warn('Check subject limit failed:', e.message);
-      // Se il check fallisce, lascia procedere (fail open)
     }
   }
   // ────────────────────────────────────────
@@ -1718,7 +1716,7 @@ async function callAPI() {
     if(res.status === 429) {
       removeTyping();
       conversationHistory.pop();
-      let errMsg = 'Hai raggiunto il limite di 50 messaggi gratuiti del mese.';
+      let errMsg = 'Hai usato tutti i 25 messaggi gratuiti del mese.';
       try { const d = await res.json(); if(d?.error?.message) errMsg = d.error.message; } catch(e){}
       appendAIUI('🔒 ' + errMsg + '<br><br><a href="ondamente-dsa-landing.html#prezzi" style="color:var(--accent);font-weight:700;">🚀 Passa a Pro →</a>');
       document.getElementById('userInput').disabled = true;
@@ -1743,11 +1741,10 @@ async function callAPI() {
     conversationHistory.pop();
   }
 }
+
 /* ── UPGRADE MODAL ────────────────────────────────────────────── */
 function showUpgradeModal(message) {
-  // Rimuovi eventuale modale esistente
   document.getElementById('upgradeModal')?.remove();
-
   const modal = document.createElement('div');
   modal.id = 'upgradeModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;';
@@ -1758,13 +1755,13 @@ function showUpgradeModal(message) {
       <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:10px;">Passa a un piano</div>
       <p style="color:var(--text-dim);font-size:14px;line-height:1.6;margin-bottom:24px;">${message}</p>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button onclick="startCheckout('price_1TZ61ZA6Nd5i0DdoxcBNoLY8')" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button onclick="startCheckout('price_1TZ9YIALVMXGZKwbgLY85Op2')" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;">
           1 Materia — €7,99
         </button>
-        <button onclick="startCheckout('price_1TZ62JA6Nd5i0DdoeAnDeQlT')" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button onclick="startCheckout('price_1TZ9YJALVMXGZKwb0aGmtSMC')" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;">
           3 Materie — €19,99
         </button>
-        <button onclick="startCheckout('price_1TZ62sA6Nd5i0DdoH91GG4gU')" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <button onclick="startCheckout('price_1TZ9YIALVMXGZKwbXVnt9JYb')" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;">
           5 Materie — €29,99
         </button>
         <button onclick="document.getElementById('upgradeModal').remove()" style="background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:8px;font-family:'DM Sans',sans-serif;">
@@ -1800,8 +1797,6 @@ async function startCheckout(price_id) {
 // Gestione ritorno da Stripe e checkout dalla landing
 (function checkPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
-
-  // Ritorno dopo pagamento completato
   if (params.get('payment') === 'success') {
     history.replaceState({}, '', window.location.pathname);
     setTimeout(() => {
@@ -1814,21 +1809,15 @@ async function startCheckout(price_id) {
       }
     }, 2000);
   }
-
-  // Checkout avviato dalla landing — aspetta il login poi apre Stripe
   const checkoutPrice = params.get('checkout');
   if (checkoutPrice) {
     history.replaceState({}, '', window.location.pathname);
     const waitForLogin = setInterval(() => {
-      if (currentUser) {
-        clearInterval(waitForLogin);
-        startCheckout(checkoutPrice);
-      }
+      if (currentUser) { clearInterval(waitForLogin); startCheckout(checkoutPrice); }
     }, 500);
     setTimeout(() => clearInterval(waitForLogin), 120000);
   }
 })();
-
 </script>
 </body>
 </html>
