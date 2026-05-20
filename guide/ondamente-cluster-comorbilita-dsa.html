@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ══ SEO META ══ -->
+  <title>Comorbilità DSA all'Università: Gestire Più Disturbi Insieme | OndaMente</title>
+  <meta name="description" content="Guida per studenti universitari con più disturbi DSA insieme (dislessia + ADHD, discalculia + dislessia, ecc.). Cosa cambia con la comorbilità, diritti specifici e strategie combinate.">
+  <meta name="keywords" content="comorbilità DSA università, dislessia ADHD insieme università, più DSA università, comorbilità disturbi apprendimento, DSA multipli università, dislessia discalculia insieme, ADHD dislessia strategie">
+  <meta name="author" content="OndaMente">
+  <link rel="canonical" href="https://ondamente.it/guide/comorbilita-dsa-universita">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="OndaMente">
+  <meta property="og:url" content="https://ondamente.it/guide/comorbilita-dsa-universita">
+  <meta property="og:title" content="Comorbilità DSA all'Università: Gestire Più Disturbi Insieme">
+  <meta property="og:description" content="Avere più di un DSA non significa sommare le difficoltà — spesso le moltiplica. Guida pratica alle strategie combinate, diritti e strumenti per la comorbilità DSA universitaria.">
+  <meta property="og:locale" content="it_IT">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Comorbilità DSA all'Università: Gestire Più Disturbi Insieme",
+    "description": "Strategie combinate, diritti normativi e adattamenti IA per studenti universitari con più profili DSA attivi contemporaneamente.",
+    "author": { "@type": "Organization", "name": "OndaMente" },
+    "publisher": { "@type": "Organization", "name": "OndaMente", "url": "https://ondamente.it" },
+    "datePublished": "2025-01-01",
+    "dateModified": "2025-05-01",
+    "mainEntityOfPage": "https://ondamente.it/guide/comorbilita-dsa-universita"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Avere più DSA significa avere più difficoltà sommate?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Non sempre è una semplice somma. Le Linee guida MIUR 1.4 riconoscono che la comorbilità genera spesso una difficoltà superiore alla somma dei singoli disturbi, perché i disturbi si influenzano reciprocamente. Questo deve essere riflesso nel PDP con misure potenziate rispetto a quelle per un singolo DSA."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Posso avere un PDP separato per ogni DSA?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No, il PDP è unico per studente ma deve includere le misure per tutti i DSA certificati. Se hai più diagnosi, l'ufficio DSA deve redigere un PDP integrato che tenga conto delle interazioni tra i disturbi."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "La comorbilità DSA dà diritto a più tempo aggiuntivo?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Non automaticamente, ma è possibile richiedere misure potenziate nel PDP. Le Linee guida MIUR 1.4 riconoscono che la comorbilità richiede attenzione specifica. La percentuale di tempo aggiuntivo può essere aumentata su indicazione dello specialista che ha redatto la diagnosi."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #0c0b14;
+      --white: #ffffff;
+      --surface: #f7f6f2;
+      --muted: #6b6780;
+      --muted2: #9997b0;
+      --border: rgba(12,11,20,0.08);
+      --violet: #1D9E75;
+      --violet-d: #167a5c;
+      --teal: #4ECDC4;
+      --amber: #F7B267;
+      --indigo: #7C6FCD;
+      --rose: #E07B8A;
+      --violet-light: rgba(29,158,117,0.08);
+      --teal-light: rgba(78,205,196,0.08);
+      --rose-light: rgba(224,123,138,0.08);
+      --rose-mid: rgba(224,123,138,0.15);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; color: var(--ink); background: var(--white); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 48px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-name { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 900; color: var(--ink); }
+    .nav-dsa-pill { background: rgba(78,205,196,0.15); border: 1px solid rgba(78,205,196,0.3); color: var(--teal); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; }
+    .nav-breadcrumb { font-size: 13px; color: var(--muted2); }
+    .nav-breadcrumb a { color: var(--violet); text-decoration: none; }
+    .nav-cta { background: var(--violet); color: #fff; padding: 8px 20px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 0.2s; }
+    .nav-cta:hover { background: var(--violet-d); }
+
+    .article-hero { background: var(--ink); padding: 80px 48px 72px; position: relative; overflow: hidden; }
+    .article-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 40% 60% at 85% 20%, rgba(29,158,117,0.15), transparent 60%),
+        radial-gradient(ellipse 40% 60% at 90% 80%, rgba(247,178,103,0.12), transparent 60%),
+        radial-gradient(ellipse 35% 50% at 5% 50%, rgba(124,111,205,0.1), transparent 60%);
+    }
+    .article-hero-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+    .article-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(224,123,138,0.15); border: 1px solid rgba(224,123,138,0.3); color: #e8a0ab; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 14px; border-radius: 100px; margin-bottom: 28px; }
+    .article-hero h1 { font-family: 'Fraunces', serif; font-size: clamp(30px, 5vw, 52px); font-weight: 900; line-height: 1.1; color: #fff; margin-bottom: 20px; }
+    .article-hero h1 em { color: #e8a0ab; font-style: normal; }
+    .article-hero .lead { font-size: 18px; color: rgba(255,255,255,0.6); line-height: 1.7; max-width: 640px; margin-bottom: 36px; }
+    .article-meta { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.4); }
+    .meta-item strong { color: rgba(255,255,255,0.7); }
+
+    .article-layout { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 300px; gap: 64px; padding: 64px 48px; align-items: start; }
+
+    .toc { position: sticky; top: 88px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+    .toc-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 16px; }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .toc-list li a { display: block; font-size: 14px; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 8px; transition: all 0.2s; line-height: 1.4; }
+    .toc-list li a:hover, .toc-list li a.active { background: var(--violet-light); color: var(--violet); }
+    .toc-cta { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .toc-cta-btn { display: block; width: 100%; text-align: center; background: var(--violet); color: #fff; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; transition: background 0.2s; }
+    .toc-cta-btn:hover { background: var(--violet-d); }
+    .toc-note { font-size: 12px; color: var(--muted2); text-align: center; margin-top: 8px; }
+    .pillar-link { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-top: 20px; text-decoration: none; color: var(--ink); transition: all 0.2s; }
+    .pillar-link:hover { border-color: var(--violet); background: var(--violet-light); }
+    .pillar-link-ico { font-size: 24px; flex-shrink: 0; }
+    .pillar-link-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted2); margin-bottom: 3px; }
+    .pillar-link-title { font-size: 13px; font-weight: 600; color: var(--violet); line-height: 1.4; }
+
+    .article-body { min-width: 0; }
+    .article-body h2 { font-family: 'Fraunces', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 900; line-height: 1.2; color: var(--ink); margin: 52px 0 18px; padding-top: 8px; }
+    .article-body h2:first-child { margin-top: 0; }
+    .article-body h3 { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 700; color: var(--ink); margin: 28px 0 10px; }
+    .article-body p { font-size: 16.5px; color: #3a3850; line-height: 1.8; margin-bottom: 20px; }
+    .article-body strong { color: var(--ink); font-weight: 700; }
+    .article-body a { color: var(--violet); text-decoration: underline; text-decoration-color: rgba(29,158,117,0.3); }
+    .article-body a:hover { text-decoration-color: var(--violet); }
+
+    .info-box { background: var(--violet-light); border: 1px solid rgba(29,158,117,0.2); border-left: 4px solid var(--violet); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+    .info-box p { margin-bottom: 0; font-size: 15px; color: var(--ink); }
+    .info-box-title { font-weight: 700; color: var(--violet); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+
+    .tip-box { background: var(--rose-light); border: 1px solid rgba(224,123,138,0.2); border-left: 4px solid var(--rose); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+    .tip-box p { margin-bottom: 0; font-size: 15px; color: var(--ink); }
+    .tip-box-title { font-weight: 700; color: var(--rose); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+
+    .warning-box { background: rgba(247,178,103,0.1); border: 1px solid rgba(247,178,103,0.3); border-left: 4px solid var(--amber); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
+    .warning-box p { margin-bottom: 0; font-size: 15px; color: var(--ink); }
+    .warning-box-title { font-weight: 700; color: #c47d1a; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+
+    .styled-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin: 20px 0 28px; }
+    .styled-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 16px; color: #3a3850; line-height: 1.6; }
+    .styled-list li::before { content: '✓'; font-weight: 800; color: var(--violet); flex-shrink: 0; font-size: 14px; margin-top: 2px; }
+
+    /* Comorbilità combinations */
+    .combi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+    .combi-card { border-radius: 16px; padding: 26px; border: 1px solid; }
+    .combi-card.a { background: linear-gradient(135deg, rgba(29,158,117,0.06), rgba(78,205,196,0.06)); border-color: rgba(78,205,196,0.2); }
+    .combi-card.b { background: linear-gradient(135deg, rgba(247,178,103,0.08), rgba(29,158,117,0.05)); border-color: rgba(247,178,103,0.25); }
+    .combi-card.c { background: linear-gradient(135deg, rgba(124,111,205,0.07), rgba(78,205,196,0.05)); border-color: rgba(124,111,205,0.2); }
+    .combi-card.d { background: linear-gradient(135deg, rgba(224,123,138,0.07), rgba(124,111,205,0.05)); border-color: rgba(224,123,138,0.2); }
+    .combi-badges { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .combi-badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 100px; }
+    .combi-badge.dis { background: rgba(29,158,117,0.12); color: var(--violet); }
+    .combi-badge.adhd { background: rgba(247,178,103,0.15); color: #c47d1a; }
+    .combi-badge.disc { background: rgba(124,111,205,0.12); color: var(--indigo); }
+    .combi-badge.dis2 { background: rgba(78,205,196,0.12); color: #2a9d96; }
+    .combi-card h4 { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
+    .combi-card p { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+    .combi-card p:last-child { margin-bottom: 0; }
+    .combi-card .sfida { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+    /* Moltiplicatore card */
+    .moltiplicatore { background: var(--ink); border-radius: 16px; padding: 32px 36px; margin: 32px 0; display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; }
+    .molt-box { text-align: center; }
+    .molt-label { font-size: 12px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-weight: 700; }
+    .molt-val { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 900; line-height: 1; }
+    .molt-val.single { color: rgba(255,255,255,0.6); }
+    .molt-val.multi { color: #e8a0ab; }
+    .molt-desc { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 6px; }
+    .molt-arrow { font-size: 32px; color: rgba(255,255,255,0.2); text-align: center; }
+    .molt-note { grid-column: 1/-1; text-align: center; font-size: 13px; color: rgba(255,255,255,0.3); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; margin-top: 4px; }
+
+    .strategy-list { list-style: none; display: flex; flex-direction: column; gap: 16px; margin: 20px 0 28px; counter-reset: strat; }
+    .strategy-list li { display: flex; gap: 16px; align-items: flex-start; font-size: 16px; color: #3a3850; line-height: 1.6; counter-increment: strat; }
+    .strategy-list li::before { content: counter(strat); font-family: 'Fraunces', serif; font-weight: 900; font-size: 18px; color: var(--rose); flex-shrink: 0; width: 32px; height: 32px; background: var(--rose-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+
+    .table-wrap { overflow-x: auto; margin: 28px 0; border-radius: 12px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    thead { background: var(--ink); }
+    thead th { color: #fff; padding: 14px 20px; text-align: left; font-weight: 700; font-size: 13px; letter-spacing: 0.04em; }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface); }
+    tbody td { padding: 14px 20px; color: #3a3850; vertical-align: top; line-height: 1.5; }
+    .td-label { font-weight: 700; color: var(--ink); }
+    .td-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .td-pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+    .td-pill.dis { background: rgba(29,158,117,0.1); color: var(--violet); }
+    .td-pill.adhd { background: rgba(247,178,103,0.15); color: #c47d1a; }
+    .td-pill.disc { background: rgba(124,111,205,0.1); color: var(--indigo); }
+    .td-pill.all { background: rgba(224,123,138,0.1); color: var(--rose); }
+
+    .cta-banner { background: linear-gradient(135deg, var(--ink) 0%, #1a1830 100%); border-radius: 20px; padding: 40px 48px; margin: 48px 0; text-align: center; position: relative; overflow: hidden; }
+    .cta-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 40% 80% at 30% 50%, rgba(29,158,117,0.08), transparent), radial-gradient(ellipse 40% 80% at 70% 50%, rgba(224,123,138,0.08), transparent); }
+    .cta-banner h3 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 12px; position: relative; z-index: 1; }
+    .cta-banner h3 em { color: #e8a0ab; font-style: normal; }
+    .cta-banner p { color: rgba(255,255,255,0.55); font-size: 15px; margin-bottom: 28px; position: relative; z-index: 1; }
+    .cta-btn { display: inline-block; background: var(--violet); color: #fff; padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; text-decoration: none; transition: all 0.2s; position: relative; z-index: 1; }
+    .cta-btn:hover { background: #27b884; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,158,117,0.4); }
+    .cta-free-note { font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 12px; position: relative; z-index: 1; }
+
+    .faq-list { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; }
+    .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .faq-q { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; cursor: pointer; font-weight: 600; font-size: 16px; color: var(--ink); user-select: none; }
+    .faq-q:hover { background: rgba(12,11,20,0.02); }
+    .faq-ico { font-size: 20px; color: var(--muted2); transition: transform 0.25s; }
+    .faq-item.open .faq-ico { transform: rotate(45deg); color: var(--violet); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.25s ease; font-size: 15px; color: var(--muted); line-height: 1.7; padding: 0 22px; }
+    .faq-item.open .faq-a { max-height: 400px; padding: 0 22px 20px; }
+
+    .cluster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+    .cluster-link { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; text-decoration: none; color: var(--ink); transition: all 0.2s; font-size: 14px; font-weight: 600; }
+    .cluster-link:hover { border-color: var(--violet); background: var(--violet-light); color: var(--violet); }
+    .cluster-link span { font-size: 22px; }
+
+    .experience-box { background: var(--ink); border-radius: 16px; padding: 32px 36px; margin: 32px 0; }
+    .experience-box blockquote { font-family: 'Fraunces', serif; font-size: 20px; font-style: italic; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 16px; }
+    .experience-box cite { font-size: 13px; color: rgba(255,255,255,0.35); font-style: normal; }
+
+    .article-footer { background: var(--surface); border-top: 1px solid var(--border); padding: 48px; text-align: center; }
+    .article-footer p { font-size: 14px; color: var(--muted2); max-width: 600px; margin: 0 auto 24px; }
+
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+
+    @media (max-width: 900px) {
+      .article-layout { grid-template-columns: 1fr; padding: 40px 24px; }
+      .toc { position: static; }
+      .combi-grid, .cluster-grid { grid-template-columns: 1fr; }
+      .moltiplicatore { grid-template-columns: 1fr; gap: 16px; }
+      .molt-arrow { transform: rotate(90deg); }
+      nav { padding: 0 24px; }
+      .nav-breadcrumb { display: none; }
+      .article-hero { padding: 56px 24px 48px; }
+      .cta-banner { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 32 32">
+      <rect width="32" height="32" rx="8" fill="#0c0b14"/>
+      <text x="2" y="27" font-family="Fraunces,serif" font-size="29" font-weight="900" fill="#fff" letter-spacing="-1">O</text>
+      <path d="M4 19 C8 10,12 10,16 15 C20 20,24 20,28 15" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-logo-name">OndaMente</span>
+    <span class="nav-dsa-pill">DSA</span>
+  </a>
+  <span class="nav-breadcrumb"><a href="/guide">Guide</a> › Comorbilità DSA</span>
+  <a href="/inizia" class="nav-cta">Prova gratis →</a>
+</nav>
+
+<header class="article-hero">
+  <div class="article-hero-inner">
+    <div class="article-tag">🔗 Guida pratica · Aggiornata 2025</div>
+    <h1>Comorbilità DSA<br>all'università: <em>gestirle insieme</em></h1>
+    <p class="lead">Avere più di un DSA non è la somma delle difficoltà — spesso le moltiplica. Ma con le strategie giuste e gli strumenti che si adattano a tutti i tuoi profili insieme, il quadro cambia.</p>
+    <div class="article-meta">
+      <div class="meta-item">🕐 <strong>11 min</strong> di lettura</div>
+      <div class="meta-item">📅 Aggiornato <strong>maggio 2025</strong></div>
+      <div class="meta-item">🎓 Per <strong>studenti universitari</strong></div>
+    </div>
+  </div>
+</header>
+
+<div class="article-layout">
+
+  <aside>
+    <nav class="toc">
+      <div class="toc-title">In questa guida</div>
+      <ul class="toc-list">
+        <li><a href="#cos-e">1. Cos'è la comorbilità DSA</a></li>
+        <li><a href="#effetto-moltiplicatore">2. L'effetto moltiplicatore</a></li>
+        <li><a href="#combinazioni">3. Le combinazioni più comuni</a></li>
+        <li><a href="#diritti">4. Diritti e PDP integrato</a></li>
+        <li><a href="#strategie">5. Strategie combinate</a></li>
+        <li><a href="#priorita">6. Priorità e focus</a></li>
+        <li><a href="#benessere">7. Benessere psicologico</a></li>
+        <li><a href="#ia">8. OndaMente e la comorbilità</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+      <div class="toc-cta">
+        <a href="/inizia" class="toc-cta-btn">🚀 Prova OndaMente gratis</a>
+        <p class="toc-note">Tutti i profili DSA attivabili insieme</p>
+      </div>
+      <a href="/guide/strumenti-compensativi-dsa-legge-170" class="pillar-link">
+        <span class="pillar-link-ico">📋</span>
+        <div>
+          <div class="pillar-link-label">↑ Guida principale</div>
+          <div class="pillar-link-title">Strumenti compensativi DSA: guida completa Legge 170</div>
+        </div>
+      </a>
+    </nav>
+  </aside>
+
+  <article class="article-body">
+
+    <div class="info-box reveal">
+      <div class="info-box-title">📌 In sintesi</div>
+      <p>La comorbilità DSA — avere più disturbi contemporaneamente — è molto più comune di quanto si pensi. Le Linee guida <strong>MIUR 1.4</strong> la riconoscono esplicitamente e stabiliscono che richiede misure potenziate rispetto ai singoli disturbi. Questa guida ti spiega cosa cambia in pratica, come costruire un PDP integrato e come OndaMente attiva tutti i tuoi adattamenti contemporaneamente.</p>
+    </div>
+
+    <!-- 1 -->
+    <h2 id="cos-e">1. Cos'è la comorbilità DSA</h2>
+    <p>Si parla di <strong>comorbilità DSA</strong> quando uno stesso studente presenta due o più disturbi specifici dell'apprendimento diagnosticati contemporaneamente. Non è una situazione rara: studi epidemiologici indicano che circa il 40% degli studenti con un DSA presenta almeno un altro disturbo associato.</p>
+    <p>Le combinazioni più frequenti includono dislessia con ADHD, dislessia con disortografia, discalculia con dislessia, e ADHD con disortografia. In alcuni casi sono presenti tre o più profili simultaneamente.</p>
+
+    <div class="warning-box reveal">
+      <div class="warning-box-title">⚠️ Attenzione alla diagnosi</div>
+      <p>Molti studenti arrivano all'università con una sola diagnosi, ignorando la presenza di un secondo disturbo. Se noti difficoltà che la tua diagnosi attuale non spiega completamente, vale la pena fare una valutazione più approfondita. Una diagnosi incompleta porta a misure compensative insufficienti.</p>
+    </div>
+
+    <!-- 2 -->
+    <h2 id="effetto-moltiplicatore">2. L'effetto moltiplicatore — MIUR 1.4</h2>
+    <p>Uno degli aspetti più importanti e meno conosciuti della comorbilità DSA è che <strong>la difficoltà non è la somma dei disturbi, ma spesso il loro prodotto</strong>. Le Linee guida MIUR 1.4 lo riconoscono esplicitamente.</p>
+    <p>Perché succede? Perché i disturbi si influenzano reciprocamente. Uno studente con dislessia e ADHD non ha solo la difficoltà di decodifica della dislessia più le difficoltà attentive dell'ADHD: ha anche l'ansia da prestazione generata da entrambe, la stanchezza cognitiva amplificata, la difficoltà a gestire strategie compensative multiple contemporaneamente.</p>
+
+    <div class="moltiplicatore reveal">
+      <div class="molt-box">
+        <div class="molt-label">Singolo DSA</div>
+        <div class="molt-val single">× 1</div>
+        <div class="molt-desc">Difficoltà in un'area specifica</div>
+      </div>
+      <div class="molt-arrow">≠</div>
+      <div class="molt-box">
+        <div class="molt-label">Comorbilità DSA</div>
+        <div class="molt-val multi">× 2+</div>
+        <div class="molt-desc">Impatto amplificato dalle interazioni</div>
+      </div>
+      <div class="molt-note">Fonte: Linee guida MIUR 1.4 — "La presenza di più disturbi genera una difficoltà superiore alla somma dei singoli"</div>
+    </div>
+
+    <p>Questo significa che il tuo PDP deve riflettere questa complessità — non può essere la somma meccanica delle misure per i singoli disturbi.</p>
+
+    <!-- 3 -->
+    <h2 id="combinazioni">3. Le combinazioni più comuni all'università</h2>
+
+    <div class="combi-grid reveal">
+      <div class="combi-card a">
+        <div class="combi-badges">
+          <span class="combi-badge dis">Dislessia</span>
+          <span class="combi-badge adhd">ADHD</span>
+        </div>
+        <h4>Dislessia + ADHD</h4>
+        <p>La combinazione più frequente. La difficoltà di decodifica della dislessia si somma all'attenzione instabile dell'ADHD: leggere diventa doppiamente faticoso perché richiede sia più elaborazione che più concentrazione sostenuta.</p>
+        <p class="sfida">Sfida chiave: mantenere il focus abbastanza a lungo da compensare la lentezza di lettura.</p>
+      </div>
+      <div class="combi-card b">
+        <div class="combi-badges">
+          <span class="combi-badge disc">Discalculia</span>
+          <span class="combi-badge dis">Dislessia</span>
+        </div>
+        <h4>Discalculia + Dislessia</h4>
+        <p>Difficoltà sia con i simboli numerici che con quelli alfabetici. I manuali universitari ricchi di formule, tabelle e testo denso diventano ostacoli su più fronti contemporaneamente.</p>
+        <p class="sfida">Sfida chiave: studiare testi tecnici che combinano lettura e calcolo in ogni pagina.</p>
+      </div>
+      <div class="combi-card c">
+        <div class="combi-badges">
+          <span class="combi-badge adhd">ADHD</span>
+          <span class="combi-badge disc">Discalculia</span>
+        </div>
+        <h4>ADHD + Discalculia</h4>
+        <p>L'impulsività dell'ADHD porta a saltare passaggi nei calcoli; la discalculia amplifica gli errori procedurali. Gli esami con problemi numerici diventano particolarmente critici.</p>
+        <p class="sfida">Sfida chiave: rallentare abbastanza da seguire le sequenze di calcolo in modo accurato.</p>
+      </div>
+      <div class="combi-card d">
+        <div class="combi-badges">
+          <span class="combi-badge dis">Dislessia</span>
+          <span class="combi-badge dis2">Disortografia</span>
+          <span class="combi-badge adhd">ADHD</span>
+        </div>
+        <h4>Tripla comorbilità</h4>
+        <p>Tre o più profili attivi rappresentano la situazione più complessa. La fatica cognitiva si accumula rapidamente, la necessità di strategie multiple può diventare sopraffacente senza un metodo integrato.</p>
+        <p class="sfida">Sfida chiave: evitare il sovraccarico da strategie compensative multiple.</p>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <h2 id="diritti">4. Diritti specifici per la comorbilità: il PDP integrato</h2>
+    <p>Con la comorbilità DSA hai diritto a misure potenziate — non è automatico, ma è riconosciuto dalla normativa e va esplicitato nel PDP.</p>
+
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr>
+            <th>Misura</th>
+            <th>Standard singolo DSA</th>
+            <th>Con comorbilità</th>
+            <th>Profili</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-label">Tempo aggiuntivo</td>
+            <td>+30%</td>
+            <td>Può essere aumentato su indicazione dello specialista</td>
+            <td><div class="td-pills"><span class="td-pill all">Tutti</span></div></td>
+          </tr>
+          <tr>
+            <td class="td-label">Sintesi vocale</td>
+            <td>Se nel PDP</td>
+            <td>Fortemente raccomandata per chi ha dislessia + ADHD</td>
+            <td><div class="td-pills"><span class="td-pill dis">Dislessia</span><span class="td-pill adhd">ADHD</span></div></td>
+          </tr>
+          <tr>
+            <td class="td-label">Calcolatrice + formulario</td>
+            <td>Se nel PDP con discalculia</td>
+            <td>Combinato con mappe per dislessia + discalculia</td>
+            <td><div class="td-pills"><span class="td-pill disc">Discalculia</span><span class="td-pill dis">Dislessia</span></div></td>
+          </tr>
+          <tr>
+            <td class="td-label">Pause strutturate</td>
+            <td>Raramente incluse per singolo DSA</td>
+            <td>Essenziali con comorbilità per gestire la fatica cognitiva</td>
+            <td><div class="td-pills"><span class="td-pill adhd">ADHD</span><span class="td-pill all">+altro</span></div></td>
+          </tr>
+          <tr>
+            <td class="td-label">Ambiente separato</td>
+            <td>Su richiesta per ADHD</td>
+            <td>Raccomandata per qualsiasi comorbilità con ADHD</td>
+            <td><div class="td-pills"><span class="td-pill adhd">ADHD</span><span class="td-pill all">+altro</span></div></td>
+          </tr>
+          <tr>
+            <td class="td-label">Supporto tutoriale</td>
+            <td>Disponibile</td>
+            <td>Prioritario — un tutor integrato copre tutti i profili</td>
+            <td><div class="td-pills"><span class="td-pill all">Tutti</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tip-box reveal">
+      <div class="tip-box-title">💡 Come ottenere un PDP adeguato</div>
+      <p>Porta all'ufficio DSA le diagnosi di <em>tutti</em> i disturbi — non solo quella principale. Chiedi esplicitamente che il PDP rifletta la comorbilità, non solo i singoli disturbi. Se lo specialista che ha fatto la diagnosi ha indicazioni specifiche sulla comorbilità, includile nella documentazione. Un PDP inadeguato è la causa principale di misure insufficienti per chi ha più DSA.</p>
+    </div>
+
+    <!-- 5 -->
+    <h2 id="strategie">5. Strategie combinate per la comorbilità</h2>
+    <p>La chiave con la comorbilità è trovare strategie che lavorino su più fronti contemporaneamente — non applicare le strategie di ogni disturbo in sequenza, che porta a sovraccarico.</p>
+
+    <ol class="strategy-list reveal">
+      <li><strong>Una strategia per due disturbi.</strong> Cerca approcci che compensino più profili insieme. La sintesi vocale, ad esempio, aiuta sia la dislessia (riduce la decodifica) che l'ADHD (il ritmo audio mantiene l'attenzione). Non servono due strategie separate.</li>
+      <li><strong>Massimo 3 concetti nuovi per sessione.</strong> Con la comorbilità, la memoria di lavoro si satura più rapidamente. Meno materiale per sessione, più sessioni. Meglio 20 minuti tre volte al giorno che 2 ore in blocco.</li>
+      <li><strong>Struttura rigida, flessibilità minima.</strong> Più profili richiedono più energia per le decisioni. Riduci le decisioni: stessa ora, stesso posto, stessa routine. L'automatismo risparmia risorse cognitive da usare per lo studio.</li>
+      <li><strong>Ripasso attivo quotidiano breve.</strong> 10 minuti di quiz al giorno sul materiale visto sono più efficaci di un ripasso lungo prima dell'esame. La memoria di lavoro ridotta beneficia particolarmente della ripetizione distribuita nel tempo.</li>
+      <li><strong>Un solo strumento compensativo principale.</strong> Usare troppi strumenti insieme può diventare controproducente. Identifica quello più utile per la tua combinazione specifica e costruisci tutto intorno a quello.</li>
+    </ol>
+
+    <!-- 6 -->
+    <h2 id="priorita">6. Come stabilire le priorità con più profili</h2>
+    <p>Con la comorbilità, una domanda pratica fondamentale è: <em>quale disturbo gestire prima?</em> Non esiste una risposta universale, ma esistono principi utili.</p>
+
+    <div class="experience-box reveal">
+      <blockquote>"Avevo dislessia e ADHD. Per anni ho cercato di gestirle entrambe con strategie separate. Il cambiamento è avvenuto quando ho trovato un metodo che le affrontava insieme — invece di fare due cose a metà, ne facevo una bene."</blockquote>
+      <cite>— Studente di Psicologia, quinto anno, con diagnosi di dislessia e ADHD</cite>
+    </div>
+
+    <ul class="styled-list">
+      <li><strong>Inizia dal disturbo che crea più ostacolo nell'accesso al materiale.</strong> Se la lettura lenta ti impedisce anche solo di aprire il libro, la dislessia va affrontata prima — con la sintesi vocale come strumento base.</li>
+      <li><strong>Poi affronta il disturbo che crea più ostacolo nella ritenzione.</strong> Se riesci a leggere ma non a ricordare, l'ADHD o la memoria di lavoro sono il collo di bottiglia successivo.</li>
+      <li><strong>Infine ottimizza per gli esami.</strong> Le misure compensative specifiche per la valutazione (tempo, calcolatrice, mappe) si costruiscono sopra un metodo di studio già funzionante.</li>
+    </ul>
+
+    <!-- 7 -->
+    <h2 id="benessere">7. Benessere psicologico con la comorbilità</h2>
+    <p>La comorbilità DSA è associata a tassi più alti di ansia da prestazione, bassa autostima accademica e burnout universitario rispetto ai singoli disturbi. Non perché chi ha più DSA sia più fragile — ma perché affronta più ostacoli con meno riconoscimento.</p>
+
+    <ul class="styled-list reveal">
+      <li>Riconosci i progressi anche piccoli. Con la comorbilità, ogni esame superato rappresenta uno sforzo oggettivamente maggiore.</li>
+      <li>Cerca connessione con altri studenti DSA — le associazioni universitarie e i gruppi online sono risorse preziose, non solo per le strategie ma per il supporto reciproco.</li>
+      <li>Se l'ansia da prestazione è significativa, il servizio di supporto psicologico dell'ateneo (quasi tutti gli atenei italiani ce l'hanno) è una risorsa disponibile e gratuita.</li>
+      <li>Non nascondere la comorbilità ai docenti per cui è rilevante — la trasparenza nei limiti della tua privacy ti protegge e crea le condizioni per ricevere il supporto a cui hai diritto.</li>
+    </ul>
+
+    <!-- CTA -->
+    <div class="cta-banner reveal">
+      <h3>OndaMente attiva <em>tutti i tuoi profili</em><br>contemporaneamente</h3>
+      <p>Seleziona tutti i DSA che ti riguardano e OndaMente applica tutti gli adattamenti combinati — in conformità con le Linee guida MIUR 1.4 sulla comorbilità.</p>
+      <a href="/inizia" class="cta-btn">🚀 Prova gratis — nessuna carta</a>
+      <p class="cta-free-note">Piano Starter gratuito · Pro €9/mese</p>
+    </div>
+
+    <!-- 8 -->
+    <h2 id="ia">8. Come OndaMente gestisce la comorbilità</h2>
+    <p>OndaMente è uno dei pochi strumenti che riconosce esplicitamente la comorbilità come situazione distinta — non come somma di singoli profili. Quando selezioni più profili DSA, il sistema attiva adattamenti specifici per la comorbilità:</p>
+
+    <ul class="styled-list reveal">
+      <li><strong>Frasi ulteriormente ridotte.</strong> Con più profili attivi, la complessità sintattica scende al minimo: massimo 10-12 parole per frase. Nessun concetto dipende da un altro nella stessa frase.</li>
+      <li><strong>Massimo 3 concetti nuovi per risposta.</strong> Rispettato rigidamente con la comorbilità — non importa quanto sia semplice il materiale.</li>
+      <li><strong>Rinforzo positivo dopo ogni risposta.</strong> La sicurezza psicologica (MIUR 5) è priorità assoluta: ogni risposta corretta, anche parziale, viene esplicitamente riconosciuta.</li>
+      <li><strong>Tutti gli adattamenti combinati.</strong> Sintesi vocale + chunk + analisi errori per tipo + valutazione del contenuto + scaffolding — attivi contemporaneamente senza conflitti.</li>
+      <li><strong>Domanda di controllo frequente.</strong> Con la comorbilità, OndaMente interrompe le spiegazioni più spesso con domande brevi — per verificare che la comprensione regga prima di aggiungere nuovo materiale.</li>
+    </ul>
+
+    <!-- Cluster links -->
+    <h2>Approfondisci per singolo profilo</h2>
+    <div class="cluster-grid reveal">
+      <a href="/guide/studiare-con-dislessia-universita" class="cluster-link">
+        <span>📖</span> Dislessia e università
+      </a>
+      <a href="/guide/adhd-universita-strategie" class="cluster-link">
+        <span>⚡</span> ADHD e università
+      </a>
+      <a href="/guide/discalculia-esami-universitari" class="cluster-link">
+        <span>🔢</span> Discalculia e università
+      </a>
+      <a href="/guide/strumenti-compensativi-dsa-legge-170" class="cluster-link">
+        <span>📋</span> Guida completa Legge 170/2010
+      </a>
+    </div>
+
+    <!-- FAQ -->
+    <h2 id="faq">Domande frequenti</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this.parentElement)">Avere più DSA significa avere più difficoltà sommate?<span class="faq-ico">+</span></div>
+        <div class="faq-a">Non è sempre una semplice somma. Le Linee guida MIUR 1.4 riconoscono che la comorbilità genera spesso una difficoltà superiore alla somma dei singoli disturbi, perché i disturbi si influenzano reciprocamente. Questo deve essere riflesso nel PDP con misure potenziate.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this.parentElement)">Posso avere un PDP separato per ogni DSA?<span class="faq-ico">+</span></div>
+        <div class="faq-a">No, il PDP è unico per studente ma deve includere le misure per tutti i DSA certificati. Se hai più diagnosi, l'ufficio DSA deve redigere un PDP integrato che tenga conto delle interazioni tra i disturbi.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this.parentElement)">La comorbilità DSA dà diritto a più tempo aggiuntivo?<span class="faq-ico">+</span></div>
+        <div class="faq-a">Non automaticamente, ma è possibile richiederlo nel PDP. Le Linee guida MIUR 1.4 riconoscono che la comorbilità richiede attenzione specifica. La percentuale di tempo aggiuntivo può essere aumentata su indicazione dello specialista che ha redatto la diagnosi.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this.parentElement)">Come faccio sapere se ho più DSA non diagnosticati?<span class="faq-ico">+</span></div>
+        <div class="faq-a">Se le misure attuali sembrano insufficienti rispetto alle tue difficoltà reali, o se noti difficoltà in aree diverse da quella per cui hai la diagnosi, vale la pena rivolgersi a un neuropsicologo per una valutazione completa. Molti studenti universitari scoprono un secondo DSA solo in età adulta.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this.parentElement)">OndaMente funziona con più profili DSA attivi insieme?<span class="faq-ico">+</span></div>
+        <div class="faq-a">Sì. OndaMente è progettato per gestire la comorbilità: quando selezioni più profili, attiva tutti gli adattamenti combinati in conformità con il MIUR 1.4. Non è una somma meccanica — il sistema riconosce la comorbilità come situazione distinta e applica misure potenziate.</div>
+      </div>
+    </div>
+
+    <!-- CTA finale -->
+    <div class="cta-banner reveal">
+      <h3>Più profili DSA.<br><em>Un solo strumento</em> che li gestisce tutti.</h3>
+      <p>OndaMente attiva dislessia, ADHD, discalculia e BES contemporaneamente — con adattamenti combinati e potenziati per la comorbilità.</p>
+      <a href="/inizia" class="cta-btn">🚀 Inizia gratis — nessuna carta</a>
+      <p class="cta-free-note">Piano Starter gratuito · Student Pro €9/mese · Lifetime €79</p>
+    </div>
+
+  </article>
+</div>
+
+<footer class="article-footer">
+  <p>Questa guida è redatta da OndaMente per informare gli studenti universitari con comorbilità DSA su strategie di studio e diritti normativi. Non costituisce consulenza medica o legale.</p>
+  <a href="/inizia" class="nav-cta" style="display:inline-block">Prova OndaMente gratis →</a>
+</footer>
+
+<script>
+  function toggleFaq(el) { el.classList.toggle('open'); }
+
+  const sections = document.querySelectorAll('h2[id]');
+  const tocLinks = document.querySelectorAll('.toc-list a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.toc-list a[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+</script>
+</body>
+</html>
