@@ -424,6 +424,7 @@
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 24px; margin-top: 56px;
   }
+  .pricing-grid-4 { grid-template-columns: repeat(4, 1fr); }
   .pricing-card {
     background: var(--white); border: 1px solid var(--border);
     border-radius: 20px; padding: 36px 32px; position: relative;
@@ -626,6 +627,7 @@
     .steps-grid { grid-template-columns: 1fr 1fr; }
     .steps-grid::before { display: none; }
     .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-grid-4 { grid-template-columns: repeat(2, 1fr); }
     .testi-grid { grid-template-columns: 1fr; }
     .faq-inner { grid-template-columns: 1fr; gap: 32px; }
     .legal-inner { grid-template-columns: 1fr; gap: 40px; }
@@ -633,6 +635,7 @@
   }
   @media (max-width: 540px) {
     .steps-grid { grid-template-columns: 1fr; }
+    .pricing-grid-4 { grid-template-columns: 1fr; }
   }
 
   /* ── SCROLL REVEAL ── */
