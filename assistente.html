@@ -561,9 +561,10 @@ async function finishOnboarding() {
     try {
       const chk = await fetch(API_ENDPOINT.replace('/api/chat', '/api/check-subject-limit'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ user_id: currentUser.id })
       });
+      if (!chk.ok) throw new Error('HTTP ' + chk.status);
       const chkData = await chk.json();
       // Blocca SOLO se allowed è esplicitamente false (non undefined/null)
       if (chkData.allowed === false) {
@@ -577,11 +578,12 @@ async function finishOnboarding() {
         return;
       }
     } catch(e) {
-      // Errore di rete o CORS — blocca invece di procedere (fail closed)
-      console.warn('Check subject limit failed:', e.message);
+      console.error('Check subject limit error:', e.message, e);
+      // Se è un errore di parsing JSON, potrebbe essere allowed:false male decodificato
+      // Mostra il modal di upgrade come fallback sicuro
       btn.disabled = false;
       btn.textContent = '🚀 Inizia senza libro';
-      alert('Errore di connessione. Controlla la rete e riprova.');
+      showUpgradeModal('Con il piano gratuito puoi studiare solo 1 materia. Acquista un piano per aggiungerne altre.');
       return;
     }
   }
