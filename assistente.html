@@ -357,7 +357,60 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+/* ── UPGRADE MODAL ────────────────────────────────────────────── */
+function showUpgradeModal(message) {
+  document.getElementById('upgradeModal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'upgradeModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;max-width:440px;width:100%;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));"></div>
+      <div style="font-size:40px;margin-bottom:16px;">🚀</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:10px;">Passa a un piano</div>
+      <p style="color:var(--text-dim);font-size:14px;line-height:1.6;margin-bottom:24px;">${message}</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="startCheckout('price_1TZ9YIALVMXGZKwbgLY85Op2')" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          1 Materia — €7,99
+        </button>
+        <button onclick="startCheckout('price_1TZ9YJALVMXGZKwb0aGmtSMC')" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;">
+          3 Materie — €19,99
+        </button>
+        <button onclick="startCheckout('price_1TZ9YIALVMXGZKwbXVnt9JYb')" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;">
+          5 Materie — €29,99
+        </button>
+        <button onclick="document.getElementById('upgradeModal').remove()" style="background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:8px;font-family:'DM Sans',sans-serif;">
+          Annulla
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function startCheckout(price_id) {
+  document.getElementById('upgradeModal')?.remove();
+  try {
+    const res = await fetch(API_ENDPOINT.replace('/api/chat', '/api/checkout'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        price_id,
+        user_id: currentUser.id,
+        user_email: currentUser.email,
+        success_url: window.location.origin + window.location.pathname + '?payment=success',
+        cancel_url:  window.location.origin + window.location.pathname + '?payment=cancelled',
+      })
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else alert('Errore nel checkout. Riprova.');
+  } catch(e) {
+    alert('Errore di connessione. Riprova.');
+  }
+}
+
+</script>
 <script>
 /* ── CONFIG ──────────────────────────────────────────────────────────────
    ISTRUZIONI SETUP:
