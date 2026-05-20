@@ -403,7 +403,7 @@ async function handleAuth() {
     // Se la sessione è già attiva (confirm email disabilitato), onAuthStateChange gestisce tutto
     // Se non c'è sessione, Supabase richiede conferma email
     if(!data?.session) {
-      showMsg('ok','✅ Controlla la tua email e clicca il link per confermare l'account.');
+      showMsg('ok','✅ Controlla la tua email e clicca il link per confermare l\'account.');
     } else {
       showMsg('ok','Account creato! Accesso in corso...');
     }
