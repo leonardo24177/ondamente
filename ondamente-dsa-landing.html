@@ -3,7 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OndaMente — L'assistente universitario che capisce il tuo modo di imparare</title>
+
+<!-- ══ SEO PRIMARIO ══ -->
+<title>OndaMente DSA — Assistente IA per Studenti con Dislessia, ADHD e Discalculia</title>
+<meta name="description" content="OndaMente DSA è l'assistente universitario progettato per studenti con dislessia, ADHD, discalculia e BES. Conforme Legge 170/2010 e Linee guida MIUR. Prova gratis.">
+<meta name="keywords" content="assistente DSA università, dislessia università app, ADHD studio universitario, strumenti compensativi DSA digitali, app studio dislessia, legge 170 strumenti compensativi, studiare con DSA università">
+<meta name="author" content="OndaMente">
+<link rel="canonical" href="https://ondamente.it/dsa">
+
+<!-- ══ OPEN GRAPH ══ -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OndaMente">
+<meta property="og:url" content="https://ondamente.it/dsa">
+<meta property="og:title" content="OndaMente DSA — L'assistente universitario per chi studia in modo diverso">
+<meta property="og:description" content="Spiegazioni adattate al tuo profilo DSA, sintesi vocale, scaffolding e quiz calibrati. Conforme Legge 170/2010. Prova gratis, nessuna carta richiesta.">
+<meta property="og:image" content="https://ondamente.it/og-image-dsa.png">
+<meta property="og:locale" content="it_IT">
+
+<!-- ══ TWITTER CARD ══ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OndaMente DSA — Assistente IA per Studenti con Dislessia, ADHD e Discalculia">
+<meta name="twitter:description" content="L'assistente universitario che si adatta al tuo profilo DSA. Conforme Legge 170/2010. Prova gratis.">
+<meta name="twitter:image" content="https://ondamente.it/og-image-dsa.png">
+
+<!-- ══ SCHEMA.ORG ══ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OndaMente DSA",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Web",
+  "description": "Assistente universitario con intelligenza artificiale specializzato per studenti con DSA: dislessia, ADHD, discalculia, BES. Conforme Legge 170/2010 e Linee guida MIUR.",
+  "url": "https://ondamente.it/dsa",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR",
+    "description": "Piano Starter gratuito disponibile"
+  },
+  "audience": {
+    "@type": "EducationalAudience",
+    "educationalRole": "student"
+  },
+  "inLanguage": "it"
+}
+</script>
+
+<!-- ══ FAQ SCHEMA (per risultati Google arricchiti) ══ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "OndaMente DSA è conforme alla Legge 170/2010?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sì. OndaMente DSA è progettato in conformità con la Legge 170/2010 e le Linee guida MIUR per gli studenti con disturbi specifici dell'apprendimento, incluse le indicazioni su valutazione del contenuto (MIUR 4.3.1), analisi dell'errore (MIUR 4.3.3) e sicurezza psicologica (MIUR 5)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Devo avere una diagnosi DSA per usare OndaMente?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. OndaMente è accessibile a tutti gli studenti. Il profilo DSA è auto-selezionabile e attiva adattamenti specifici, ma la piattaforma funziona anche senza diagnosi ufficiale."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quali profili DSA supporta OndaMente?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OndaMente supporta dislessia, disgrafia, disortografia, discalculia, ADHD, BES e comorbilità (più profili attivi contemporaneamente)."
+      }
+    }
+  ]
+}
+</script>
+
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -335,7 +415,7 @@
   <div class="pricing-inner">
     <div class="sec-label">Prezzi</div>
     <div class="sec-title">Paghi per l'esame,<br><em>non per il mese</em>.</div>
-    <div class="sec-sub" style="text-align:center;color:var(--muted);font-size:16px;max-width:520px;margin:0 auto 48px;line-height:1.7;">Ogni materia scade 10 giorni dopo il tuo esame — così paghi solo quando studi davvero.</div>
+    <p style="text-align:center;color:var(--muted);font-size:16px;max-width:520px;margin:0 auto 48px;line-height:1.7;">Ogni materia scade 10 giorni dopo il tuo esame — così paghi solo quando studi davvero.</p>
     <div class="pricing-grid pricing-grid-4">
 
       <!-- FREE -->
@@ -377,7 +457,7 @@
           <li>PDF illimitati</li>
           <li>Scade 10 gg dopo l'esame</li>
         </ul>
-        <button class="plan-btn" onclick="landingCheckout('price_1TZ61ZA6Nd5i0DdoxcBNoLY8')">Acquista — €7,99</button>
+        <button class="plan-btn" onclick="openCheckout('price_1TZ61ZA6Nd5i0DdoxcBNoLY8')">Acquista — €7,99</button>
         <div class="plan-note">Pagamento unico</div>
       </div>
 
@@ -400,7 +480,7 @@
           <li>PDF illimitati</li>
           <li>Ogni materia scade 10 gg dopo l'esame</li>
         </ul>
-        <button class="plan-btn" onclick="landingCheckout('price_1TZ62JA6Nd5i0DdoeAnDeQlT')">Acquista — €19,99</button>
+        <button class="plan-btn" onclick="openCheckout('price_1TZ62JA6Nd5i0DdoeAnDeQlT')">Acquista — €19,99</button>
         <div class="plan-note">Valido fino al 31 luglio</div>
       </div>
 
@@ -423,7 +503,7 @@
           <li>PDF illimitati</li>
           <li>Ogni materia scade 10 gg dopo l'esame</li>
         </ul>
-        <button class="plan-btn" onclick="landingCheckout('price_1TZ62sA6Nd5i0DdoH91GG4gU')">Acquista — €29,99</button>
+        <button class="plan-btn" onclick="openCheckout('price_1TZ62sA6Nd5i0DdoH91GG4gU')">Acquista — €29,99</button>
         <div class="plan-note">Valido fino al 31 luglio</div>
       </div>
 
@@ -507,8 +587,8 @@
         <div class="faq-a">Puoi selezionarne più di uno. OndaMente attiva tutti gli adattamenti combinati e aumenta ulteriormente la semplificazione — riconoscendo che la comorbilità genera difficoltà superiore alla somma dei singoli profili (MIUR 1.4).</div>
       </div>
       <div class="faq-item" onclick="toggleFaq(this)">
-        <div class="faq-q">Posso annullare l'abbonamento quando voglio? <span class="faq-ico">+</span></div>
-        <div class="faq-a">Sì, senza penali. Manterrai l'accesso fino alla fine del periodo pagato. Per il Lifetime non ci sono abbonamenti da disdire.</div>
+        <div class="faq-q">E' un servizio in abbonamento? <span class="faq-ico">+</span></div>
+        <div class="faq-a">Paghi sono le materie che prepari, quando hai finito di studiare non ci sono abbonamenti da disdire.</div>
       </div>
     </div>
   </div>
@@ -605,11 +685,6 @@
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// Checkout dalla landing — reindirizza all'assistente se non loggato
-async function landingCheckout(price_id) {
-  window.location.href = 'assistente.html?checkout=' + price_id;
-}
 </script>
 </body>
 </html>
