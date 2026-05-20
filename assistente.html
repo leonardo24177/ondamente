@@ -397,9 +397,17 @@ async function handleAuth() {
   const fn = authMode==='login'
     ? sb.auth.signInWithPassword({ email, password:pass })
     : sb.auth.signUp({ email, password:pass });
-  const { error } = await fn;
+  const { data, error } = await fn;
   if(error) showMsg('err', error.message);
-  else if(authMode==='register') showMsg('ok','Account creato! Accesso in corso...');
+  else if(authMode==='register') {
+    // Se la sessione è già attiva (confirm email disabilitato), onAuthStateChange gestisce tutto
+    // Se non c'è sessione, Supabase richiede conferma email
+    if(!data?.session) {
+      showMsg('ok','✅ Controlla la tua email e clicca il link per confermare l'account.');
+    } else {
+      showMsg('ok','Account creato! Accesso in corso...');
+    }
+  }
   btn.disabled=false; btn.textContent = authMode==='login'?'Accedi':'Registrati';
 }
 async function handleLogout() {
@@ -411,12 +419,14 @@ function showMsg(t,m) { const e=document.getElementById(t==='err'?'authErr':'aut
 function clearMsg() { ['authErr','authOk'].forEach(id=>document.getElementById(id)?.classList.remove('visible')); }
 
 sb.auth.onAuthStateChange(async (event, session) => {
+  console.log('AUTH EVENT:', event, session?.user?.email || 'no user');
   if(session?.user) {
     currentUser = session.user;
     document.getElementById('authScreen').classList.add('hidden');
     document.getElementById('userEmail').textContent = currentUser.email;
     await loadAfterLogin();
   } else {
+    currentUser = null;
     document.getElementById('authScreen').classList.remove('hidden');
   }
 });
