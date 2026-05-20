@@ -1797,13 +1797,13 @@ async function startCheckout(price_id) {
   }
 }
 
-// Gestione ritorno da Stripe
+// Gestione ritorno da Stripe e checkout dalla landing
 (function checkPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
+
+  // Ritorno dopo pagamento completato
   if (params.get('payment') === 'success') {
-    // Rimuovi il parametro dall'URL
     history.replaceState({}, '', window.location.pathname);
-    // Mostra messaggio di successo dopo il login
     setTimeout(() => {
       const el = document.getElementById('messages');
       if (el && currentUser) {
@@ -1813,6 +1813,19 @@ async function startCheckout(price_id) {
         el.appendChild(d);
       }
     }, 2000);
+  }
+
+  // Checkout avviato dalla landing — aspetta il login poi apre Stripe
+  const checkoutPrice = params.get('checkout');
+  if (checkoutPrice) {
+    history.replaceState({}, '', window.location.pathname);
+    const waitForLogin = setInterval(() => {
+      if (currentUser) {
+        clearInterval(waitForLogin);
+        startCheckout(checkoutPrice);
+      }
+    }, 500);
+    setTimeout(() => clearInterval(waitForLogin), 120000);
   }
 })();
 
