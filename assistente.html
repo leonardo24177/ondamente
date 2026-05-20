@@ -1683,6 +1683,7 @@ async function callAPI() {
         system:sys,
         messages:msgs,
         user_id:currentUser?.id||null,
+        mode:currentMode||'spiega',
         conversation_id:currentConvId||null,
         subject_id:currentSubject?.id||null
       })
