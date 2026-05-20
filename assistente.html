@@ -1678,66 +1678,36 @@ async function callAPI() {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
+        model:'claude-sonnet-4-5',
         max_tokens:700,
         system:sys,
         messages:msgs,
-        stream:true
+        user_id:currentUser?.id||null,
+        conversation_id:currentConvId||null,
+        subject_id:currentSubject?.id||null
       })
     });
-    if(!res.ok){ removeTyping(); appendAIUI('⚠️ Errore API (status: '+res.status+')'); return; }
-
-    removeTyping();
-
-    // Crea bolla AI vuota dove scriveremo lo stream
-    const el = document.getElementById('messages');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message ai';
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    msgDiv.innerHTML = '<div class="avatar ai">🌊</div>';
-    msgDiv.appendChild(bubble);
-    el.appendChild(msgDiv);
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = '';
-    let buffer = '';
-
-    while(true) {
-      const { done, value } = await reader.read();
-      if(done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop(); // l'ultima riga potrebbe essere incompleta
-      for(const line of lines) {
-        if(!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if(data === '[DONE]') break;
-        try {
-          const json = JSON.parse(data);
-          const delta = json.delta?.text || '';
-          if(delta) {
-            fullText += delta;
-            bubble.innerHTML = fmt(fullText);
-            el.scrollTop = el.scrollHeight;
-          }
-        } catch(e) {}
-      }
+    if(res.status === 429) {
+      removeTyping();
+      conversationHistory.pop();
+      let errMsg = 'Hai raggiunto il limite di 50 messaggi gratuiti del mese.';
+      try { const d = await res.json(); if(d?.error?.message) errMsg = d.error.message; } catch(e){}
+      appendAIUI('🔒 ' + errMsg + '<br><br><a href="ondamente-dsa-landing.html#prezzi" style="color:var(--accent);font-weight:700;">🚀 Passa a Pro →</a>');
+      document.getElementById('userInput').disabled = true;
+      document.getElementById('sendBtn').disabled = true;
+      return;
     }
-
-    if(!fullText) fullText = 'Non riesco a rispondere al momento.';
-    bubble.innerHTML = fmt(fullText);
-    el.scrollTop = el.scrollHeight;
-    updateMessagesPadding();
-
-    conversationHistory.push({role:'assistant',content:fullText});
-    if(ttsEnabled) ttsSpeak(fullText);
-
+    const data = await res.json();
+    if(data.error){removeTyping();appendAIUI('⚠️ Errore API: ' + data.error.message + ' (status: ' + res.status + ')');return;}
+    if(!data.content){removeTyping();appendAIUI('⚠️ Risposta vuota dal server. Status: ' + res.status + '. Risposta: ' + JSON.stringify(data).substring(0,200));return;}
+    const text = data.content?.map(c=>c.text||'').join('')||'Non riesco a rispondere al momento.';
+    removeTyping(); appendAIUI(text);
+    conversationHistory.push({role:'assistant',content:text});
     // Salvataggio fire-and-forget
     const isLocal = !currentConvId || currentConvId.startsWith('local_');
     if(!isLocal) {
       showSaving();
-      sb.from('messages').insert({conversation_id:currentConvId,role:'assistant',content:fullText}).then(()=>{});
+      sb.from('messages').insert({conversation_id:currentConvId,role:'assistant',content:text}).then(()=>{});
       sb.from('conversations').update({updated_at:new Date().toISOString()}).eq('id',currentConvId).then(()=>{ hideSaving(); });
     }
   } catch(e) {
