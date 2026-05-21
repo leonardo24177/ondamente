@@ -1510,8 +1510,9 @@ async function startCheckout(price_id) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         price_id,
-        user_id: currentUser.id,
+        user_id:    currentUser.id,
         user_email: currentUser.email,
+        subject_id: currentSubject?.id || null,
         success_url: window.location.origin + window.location.pathname + '?payment=success',
         cancel_url:  window.location.origin + window.location.pathname + '?payment=cancelled',
       })
