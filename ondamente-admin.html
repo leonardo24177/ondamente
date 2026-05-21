@@ -1055,15 +1055,16 @@ async function doLogin() {
   }
 
   // Verifica flag is_admin nella tabella profiles
-  const { data: profile, error: profileError } = await sb.from('profiles').select('is_admin').eq('id', data.user.id).single();
-
-  console.log('USER ID:', data.user.id);
-  console.log('PROFILE:', profile);
-  console.log('PROFILE ERROR:', profileError);
+  // Usiamo maybeSingle per evitare errori se il profilo non esiste
+  const { data: profile, error: profileError } = await sb
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', data.user.id)
+    .maybeSingle();
 
   if (!profile?.is_admin) {
     await sb.auth.signOut();
-    errEl.textContent = `⛔ Accesso negato. [id:${data.user.id.slice(0,8)} | admin:${profile?.is_admin} | err:${profileError?.message||'no'}]`;
+    errEl.textContent = '⛔ Accesso negato. Non sei un amministratore.';
     btn.disabled = false; btn.textContent = 'Accedi come admin';
     return;
   }
