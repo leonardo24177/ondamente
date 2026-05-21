@@ -377,6 +377,82 @@ tbody td { padding: 11px 12px 11px 0; font-size: 13px; vertical-align: middle; }
   color: var(--muted); cursor: pointer; transition: all 0.15s;
 }
 .edit-btn:hover { background: var(--green); color: #fff; border-color: var(--green); }
+
+/* ── RESPONSIVE MOBILE ── */
+@media (max-width: 768px) {
+
+  /* Sidebar diventa bottom nav */
+  .sidebar {
+    position: fixed; top: auto; bottom: 0; left: 0; right: 0;
+    width: 100%; height: auto; flex-direction: row;
+    padding: 0; z-index: 200;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .sidebar-logo { display: none; }
+  .sidebar-nav {
+    flex-direction: row; padding: 0;
+    width: 100%; gap: 0; justify-content: space-around;
+  }
+  .nav-item {
+    flex-direction: column; gap: 3px; padding: 10px 8px;
+    font-size: 9px; text-align: center; flex: 1;
+    border-radius: 0; letter-spacing: 0.03em;
+  }
+  .nav-item .icon { font-size: 18px; width: auto; }
+  .sidebar-bottom { display: none; }
+
+  /* Main senza margin sidebar */
+  .main {
+    margin-left: 0;
+    padding: 20px 16px 80px; /* spazio per bottom nav */
+  }
+
+  /* Header */
+  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .header-actions { width: 100%; }
+  .btn-refresh { width: 100%; justify-content: center; }
+  .last-updated { text-align: left; }
+  .page-title { font-size: 24px; }
+
+  /* KPI grid: 2 colonne su mobile */
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi-value { font-size: 26px; }
+  .kpi-card { padding: 14px 16px; }
+
+  /* Grid 2 e 3 colonne → 1 colonna */
+  .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Tabelle scrollabili */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 480px; }
+
+  /* Card padding ridotto */
+  .card { padding: 16px; }
+
+  /* Filter chips wrap */
+  .filter-row { gap: 6px; }
+  .filter-chip { padding: 4px 10px; font-size: 10px; }
+
+  /* Modal full screen su mobile */
+  .modal-box {
+    max-width: 100%; margin: 0 12px;
+    padding: 22px 20px;
+  }
+
+  /* Login box */
+  .login-box { margin: 0 16px; padding: 32px 24px; }
+
+  /* Panel tabs */
+  .panel-tabs { width: 100%; overflow-x: auto; }
+
+  /* Chart altezza ridotta */
+  .chart-wrap { height: 160px; }
+}
+
+@media (max-width: 400px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi-value { font-size: 30px; }
+}
 </style>
 </head>
 <body>
