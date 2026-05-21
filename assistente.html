@@ -790,7 +790,7 @@ function setMode(m) {
 }
 function qa(t) { sendUserMessage(t); }
 function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
-function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; updateMessagesPadding(); }
 function sendMessage() { const inp=document.getElementById('userInput'),t=inp.value.trim(); if(!t||isLoading) return; inp.value='';inp.style.height='auto'; sendUserMessage(t); }
 
 async function sendUserMessage(text) {
@@ -843,14 +843,20 @@ function hideSaving() { document.getElementById('saveInd').classList.remove('v')
 
 function fmt(text) {
   let h=text
-    .replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>')
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')
     .replace(/💡 (.+)/g,'<div class="ib">💡 $1</div>')
     .replace(/✅ (.+)/g,'<div class="ok-box">✅ $1</div>')
     .replace(/^[-•] (.+)$/gm,'<li>$1</li>').replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
   h=h.replace(/(<li>.*?<\/li>\n?)+/gs,m=>'<ul>'+m+'</ul>');
-  h=h.split('\n\n').map(p=>p.trim()).filter(p=>p&&!p.startsWith('<')).reduce((a,p)=>a.replace(p,`<p>${p}</p>`),h);
-  return h||`<p>${text}</p>`;
+  // Wrapping paragrafi sicuro: non wrappa tag block-level già presenti
+  const blockRe = /^<(h[1-6]|ul|ol|li|div|blockquote)/;
+  h=h.split('\n\n').map(p=>{
+    const t=p.trim();
+    if(!t || blockRe.test(t)) return t;
+    return '<p>'+t+'</p>';
+  }).join('\n\n');
+  return h||'<p>'+text+'</p>';
 }
 
 function toggleSpacing() {
@@ -1076,12 +1082,7 @@ function updateMessagesPadding() {
 window.addEventListener('resize', updateMessagesPadding);
 window.addEventListener('orientationchange', () => setTimeout(updateMessagesPadding, 300));
 
-// Aggiorna anche quando la textarea cambia altezza
-const _autoResize = autoResize;
-function autoResize(el) {
-  _autoResize(el);
-  updateMessagesPadding();
-}
+// updateMessagesPadding già integrata in autoResize
 let sttRecognition = null;
 let sttActive = false;
 
@@ -1359,10 +1360,10 @@ async function callAPI() {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-5',
         max_tokens:700,
         system:sys,
         messages:msgs,
+        mode:currentMode,
         user_id:currentUser?.id||null,
         conversation_id:currentConvId||null,
         subject_id:currentSubject?.id||null
@@ -1379,7 +1380,7 @@ async function callAPI() {
     if(!isLocal) {
       showSaving();
       sb.from('messages').insert({conversation_id:currentConvId,role:'assistant',content:text}).then(()=>{});
-      sb.from('conversations').update({updated_at:new Date().toISOString()}).eq('id',currentConvId).then(()=>{ hideSaving(); });
+      sb.from('conversations').update({updated_at:new Date().toISOString()}).eq('id',currentConvId).then(()=>{ hideSaving(); }).catch(()=>{ hideSaving(); });
     }
   } catch(e) {
     removeTyping(); appendAIUI('⚠️ Errore di connessione. Riprova tra qualche secondo.');
