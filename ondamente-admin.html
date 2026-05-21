@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ondamente — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --ink: #0c0b14;
+  --bg: #f4f3ef;
+  --surface: #ffffff;
+  --surface2: #f9f8f5;
+  --border: rgba(12,11,20,0.08);
+  --muted: #6b6780;
+  --muted2: #9997b0;
+  --green: #1D9E75;
+  --green-d: #167a5c;
+  --green-light: rgba(29,158,117,0.1);
+  --teal: #4ECDC4;
+  --teal-light: rgba(78,205,196,0.1);
+  --amber: #F7B267;
+  --amber-light: rgba(247,178,103,0.12);
+  --red: #e05252;
+  --red-light: rgba(224,82,82,0.1);
+  --violet: #7C6AF7;
+  --violet-light: rgba(124,106,247,0.1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+}
+#loginScreen.hidden { display: none; }
+.login-box {
+  width: 100%; max-width: 380px;
+  background: #17162b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px; padding: 40px 36px;
+}
+.login-logo {
+  font-family: 'Fraunces', serif; font-size: 26px; font-weight: 900;
+  color: #fff; text-align: center; margin-bottom: 4px;
+}
+.login-tag {
+  text-align: center; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--green); margin-bottom: 32px;
+}
+.login-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: rgba(255,255,255,0.35);
+  margin-bottom: 6px; display: block;
+}
+.login-input {
+  width: 100%; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 12px 14px;
+  font-size: 14px; color: #fff; font-family: 'DM Sans', sans-serif;
+  outline: none; transition: border-color 0.2s; margin-bottom: 14px;
+}
+.login-input:focus { border-color: var(--green); }
+.login-input::placeholder { color: rgba(255,255,255,0.2); }
+.login-btn {
+  width: 100%; padding: 13px;
+  background: var(--green); border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 700; color: #fff;
+  cursor: pointer; transition: background 0.2s; margin-top: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+.login-btn:hover { background: var(--green-d); }
+.login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.login-err {
+  font-size: 12px; color: #f87171; margin-top: 10px;
+  text-align: center; min-height: 18px;
+}
+.login-divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 20px 0; }
+
+/* ── APP (nascosta finché non autenticato) ── */
+#appRoot { display: none; }
+#appRoot.visible { display: block; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 220px;
+  background: var(--ink);
+  display: flex; flex-direction: column;
+  padding: 28px 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 0 24px 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.logo-name {
+  font-family: 'Fraunces', serif;
+  font-size: 22px; font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.logo-tag {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--green);
+  margin-top: 2px;
+}
+.sidebar-nav { flex: 1; padding: 20px 12px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer; transition: all 0.15s;
+  text-decoration: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(29,158,117,0.15); color: var(--green); }
+.nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+.sidebar-bottom { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+.sidebar-bottom .status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); display: inline-block; margin-right: 6px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.sidebar-status { font-size: 11px; color: rgba(255,255,255,0.3); display: flex; align-items: center; }
+
+/* ── MAIN ── */
+.main { margin-left: 220px; padding: 32px 36px; }
+
+/* ── HEADER ── */
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 28px;
+}
+.page-title { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; letter-spacing: -1px; }
+.page-title span { color: var(--green); font-style: italic; }
+.page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.header-actions { display: flex; gap: 10px; }
+.btn-refresh {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 500; color: var(--ink);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-refresh:hover { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-refresh svg { transition: transform 0.3s; }
+.btn-refresh:hover svg { transform: rotate(180deg); }
+.last-updated { font-size: 11px; color: var(--muted2); margin-top: 4px; text-align: right; font-family: 'DM Mono', monospace; }
+
+/* ── PANEL TABS ── */
+.panel-tabs { display: flex; gap: 0; margin-bottom: 24px; background: var(--surface); border-radius: 10px; padding: 4px; border: 1px solid var(--border); width: fit-content; }
+.tab-btn {
+  padding: 7px 18px; border-radius: 7px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: none;
+  background: transparent; color: var(--muted);
+  transition: all 0.15s;
+}
+.tab-btn.active { background: var(--ink); color: #fff; }
+
+/* ── KPI GRID ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 22px;
+  position: relative; overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.kpi-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+.kpi-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+}
+.kpi-card.green::before { background: var(--green); }
+.kpi-card.teal::before { background: var(--teal); }
+.kpi-card.amber::before { background: var(--amber); }
+.kpi-card.violet::before { background: var(--violet); }
+.kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.kpi-value { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.kpi-value.green { color: var(--green); }
+.kpi-value.teal { color: var(--teal); }
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.violet { color: var(--violet); }
+.kpi-trend { font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.kpi-trend .up { color: var(--green); }
+.kpi-trend .down { color: var(--red); }
+
+/* ── GRID 2 COLONNE ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 22px 24px;
+}
+.card-title {
+  font-size: 13px; font-weight: 600; letter-spacing: 0.03em;
+  color: var(--ink); margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title .badge {
+  font-size: 10px; padding: 3px 8px; border-radius: 100px;
+  font-weight: 600; letter-spacing: 0.04em;
+}
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: #c97d3a; }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-violet { background: var(--violet-light); color: var(--violet); }
+
+/* ── PLAN BARS ── */
+.plan-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.plan-label { font-size: 12px; font-weight: 500; width: 72px; flex-shrink: 0; }
+.plan-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 100px; overflow: hidden; }
+.plan-bar { height: 100%; border-radius: 100px; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
+.plan-count { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--muted); width: 36px; text-align: right; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  text-align: left; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted2); padding: 0 12px 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 11px 12px 11px 0; font-size: 13px; vertical-align: middle; }
+.td-email { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-plan { display: inline-flex; align-items: center; gap: 5px; }
+.plan-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.td-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.td-amount { font-family: 'DM Mono', monospace; font-weight: 500; color: var(--green); }
+
+/* ── REVENUE ITEM ── */
+.rev-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.rev-item:last-child { border-bottom: none; }
+.rev-name { font-size: 13px; font-weight: 500; }
+.rev-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.rev-amount { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
+.rev-amount.green { color: var(--green); }
+
+/* ── CHART ── */
+.chart-wrap { position: relative; height: 180px; }
+
+/* ── EMPTY / LOADER ── */
+.loader { display: flex; align-items: center; justify-content: center; height: 80px; color: var(--muted2); font-size: 13px; gap: 8px; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state { text-align: center; padding: 32px; color: var(--muted2); font-size: 13px; }
+
+/* ── SEARCH ── */
+.search-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 16px;
+}
+.search-bar input { border: none; background: transparent; font-size: 13px; color: var(--ink); outline: none; flex: 1; font-family: 'DM Sans', sans-serif; }
+.search-bar input::placeholder { color: var(--muted2); }
+
+/* ── PANEL VIEWS ── */
+.panel-view { display: none; }
+.panel-view.active { display: block; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--ink); color: #fff;
+  padding: 12px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  transform: translateY(80px); opacity: 0;
+  transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+  z-index: 9999; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── FILTER ROW ── */
+.filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.filter-chip {
+  padding: 5px 12px; border-radius: 100px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  border: 1px solid var(--border); background: var(--surface);
+  cursor: pointer; transition: all 0.15s; color: var(--muted);
+}
+.filter-chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.filter-chip:hover:not(.active) { border-color: var(--ink); color: var(--ink); }
+
+/* ── PAGINATION ── */
+.pagination { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 14px; }
+.page-btn {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); transition: all 0.15s;
+}
+.page-btn.active, .page-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+.page-info { font-size: 11px; color: var(--muted2); font-family: 'DM Mono', monospace; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Ondamente</div>
+    <div class="login-tag">Admin Panel</div>
+    <label class="login-label">Email</label>
+    <input id="loginEmail" class="login-input" type="email" placeholder="tuaemail@esempio.com" onkeydown="if(event.key==='Enter') doLogin()">
+    <label class="login-label">Password</label>
+    <input id="loginPass" class="login-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Accedi come admin</button>
+    <div class="login-err" id="loginErr"></div>
+    <hr class="login-divider">
+    <div style="text-align:center;font-size:11px;color:rgba(255,255,255,0.2)">Accesso riservato agli amministratori</div>
+  </div>
+</div>
+
+<!-- APP ROOT (visibile solo dopo login admin) -->
+<div id="appRoot">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-name">Ondamente</div>
+    <div class="logo-tag">Admin Panel</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" onclick="switchPanel('overview')">
+      <span class="icon">⬡</span> Overview
+    </a>
+    <a class="nav-item" onclick="switchPanel('utenti')">
+      <span class="icon">◎</span> Utenti
+    </a>
+    <a class="nav-item" onclick="switchPanel('incassi')">
+      <span class="icon">◈</span> Incassi
+    </a>
+    <a class="nav-item" onclick="switchPanel('materie')">
+      <span class="icon">◇</span> Materie
+    </a>
+    <a class="nav-item" onclick="switchPanel('messaggi')">
+      <span class="icon">◉</span> Messaggi
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-status"><span class="status-dot"></span> Supabase connesso</div>
+    <div style="margin-top:10px">
+      <button onclick="doLogout()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px;font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.35)'">
+        ← Logout
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Dashboard <span>Admin</span></div>
+      <div class="page-sub">Dati live da Supabase · Ondamente DSA</div>
+    </div>
+    <div>
+      <div class="header-actions">
+        <button class="btn-refresh" onclick="loadAll()">
+          <svg id="refreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Aggiorna
+        </button>
+      </div>
+      <div class="last-updated" id="lastUpdated">—</div>
+    </div>
+  </div>
+
+  <!-- ══ OVERVIEW ══ -->
+  <div id="panel-overview" class="panel-view active">
+    <div class="kpi-grid">
+      <div class="kpi-card green">
+        <div class="kpi-label">Utenti totali</div>
+        <div class="kpi-value green" id="kpi-utenti">—</div>
+        <div class="kpi-trend" id="kpi-utenti-sub">caricamento...</div>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-label">Utenti paganti</div>
+        <div class="kpi-value teal" id="kpi-paganti">—</div>
+        <div class="kpi-trend" id="kpi-paganti-sub">caricamento...</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Incasso stimato</div>
+        <div class="kpi-value amber" id="kpi-revenue">—</div>
+        <div class="kpi-trend" id="kpi-revenue-sub">da acquisti piano</div>
+      </div>
+      <div class="kpi-card violet">
+        <div class="kpi-label">Messaggi totali</div>
+        <div class="kpi-value violet" id="kpi-messaggi">—</div>
+        <div class="kpi-trend" id="kpi-messaggi-sub">caricamento...</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <!-- Distribuzione piani -->
+      <div class="card">
+        <div class="card-title">Distribuzione piani <span class="badge badge-green">LIVE</span></div>
+        <div id="plan-bars">
+          <div class="loader"><div class="spinner"></div> Caricamento...</div>
+        </div>
+      </div>
+
+      <!-- Revenue per piano -->
+      <div class="card">
+        <div class="card-title">Revenue per piano</div>
+        <div id="rev-breakdown">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Materie per stato -->
+      <div class="card">
+        <div class="card-title">Stato materie</div>
+        <div class="chart-wrap">
+          <canvas id="chartMaterie"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Ultimi utenti registrati -->
+      <div class="card">
+        <div class="card-title">Ultimi utenti registrati <span class="badge badge-violet">RECENTI</span></div>
+        <div id="last-users-table">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Ultime materie acquistate -->
+      <div class="card">
+        <div class="card-title">Ultime materie acquistate <span class="badge badge-amber">RECENTI</span></div>
+        <div id="last-subjects-table">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ UTENTI ══ -->
+  <div id="panel-utenti" class="panel-view">
+    <div class="card">
+      <div class="card-title">Tutti gli utenti</div>
+      <div class="search-bar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9997b0" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="userSearch" type="text" placeholder="Cerca per email o DSA..." oninput="filterUsers()">
+      </div>
+      <div class="filter-row">
+        <span style="font-size:11px;color:var(--muted2);font-weight:600;letter-spacing:0.05em;">PIANO:</span>
+        <div class="filter-chip active" data-filter="all" onclick="setUserFilter('all', this)">Tutti</div>
+        <div class="filter-chip" data-filter="free" onclick="setUserFilter('free', this)">Free</div>
+        <div class="filter-chip" data-filter="single" onclick="setUserFilter('single', this)">Single</div>
+        <div class="filter-chip" data-filter="triple" onclick="setUserFilter('triple', this)">Trio</div>
+        <div class="filter-chip" data-filter="quintuple" onclick="setUserFilter('quintuple', this)">Full</div>
+      </div>
+      <div id="users-table">
+        <div class="loader"><div class="spinner"></div> Caricamento...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ INCASSI ══ -->
+  <div id="panel-incassi" class="panel-view">
+    <div class="kpi-grid">
+      <div class="kpi-card green">
+        <div class="kpi-label">Totale stimato</div>
+        <div class="kpi-value green" id="inc-totale">—</div>
+        <div class="kpi-trend">somma piani acquistati</div>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-label">Single (€7,99)</div>
+        <div class="kpi-value teal" id="inc-single">—</div>
+        <div class="kpi-trend" id="inc-single-n">— acquisti</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Trio (€19,99)</div>
+        <div class="kpi-value amber" id="inc-trio">—</div>
+        <div class="kpi-trend" id="inc-trio-n">— acquisti</div>
+      </div>
+      <div class="kpi-card violet">
+        <div class="kpi-label">Full (€29,99)</div>
+        <div class="kpi-value violet" id="inc-full">—</div>
+        <div class="kpi-trend" id="inc-full-n">— acquisti</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Acquisti per piano</div>
+        <div class="chart-wrap">
+          <canvas id="chartRevenue"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Materie pagate per prezzo</div>
+        <div id="subjects-paid-breakdown">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Materie acquistate di recente <span class="badge badge-green">CON PREZZO</span></div>
+      <div id="paid-subjects-table">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MATERIE ══ -->
+  <div id="panel-materie" class="panel-view">
+    <div class="card">
+      <div class="card-title">Tutte le materie</div>
+      <div class="filter-row">
+        <div class="filter-chip active" data-mf="all" onclick="setMatFilter('all', this)">Tutte</div>
+        <div class="filter-chip" data-mf="paid" onclick="setMatFilter('paid', this)">Pagate</div>
+        <div class="filter-chip" data-mf="free" onclick="setMatFilter('free', this)">Free</div>
+        <div class="filter-chip" data-mf="active" onclick="setMatFilter('active', this)">Attive</div>
+        <div class="filter-chip" data-mf="expired" onclick="setMatFilter('expired', this)">Scadute</div>
+      </div>
+      <div id="materie-table">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MESSAGGI ══ -->
+  <div id="panel-messaggi" class="panel-view">
+    <div class="kpi-grid">
+      <div class="kpi-card green">
+        <div class="kpi-label">Messaggi totali</div>
+        <div class="kpi-value green" id="msg-tot">—</div>
+        <div class="kpi-trend">tutti i ruoli</div>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-label">Messaggi utente</div>
+        <div class="kpi-value teal" id="msg-user">—</div>
+        <div class="kpi-trend">role = user</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Risposte AI</div>
+        <div class="kpi-value amber" id="msg-ai">—</div>
+        <div class="kpi-trend">role = assistant</div>
+      </div>
+      <div class="kpi-card violet">
+        <div class="kpi-label">Conversazioni</div>
+        <div class="kpi-value violet" id="msg-convs">—</div>
+        <div class="kpi-trend">thread totali</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Utilizzo per utente (top 20)</div>
+      <div id="usage-table">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+</div><!-- /appRoot -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── CONFIG (stesso progetto di assistente.html) ──
+const SB_URL = 'https://rcqzyagyycipigemyelh.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcXp5YWd5eWNpcGlnZW15ZWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODc4OTQsImV4cCI6MjA5NDc2Mzg5NH0.3g91LBklWICsd-rnA7G_HQEhLHe-S-ImP3HrggTUIwM';
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// Prezzi per price_id
+const PRICE_MAP = {
+  'price_1TZ61ZA6Nd5i0DdoxcBNoLY8': { label: 'Single', price: 7.99, color: '#4ECDC4', plan: 'single' },
+  'price_1TZ62JA6Nd5i0DdoeAnDeQlT': { label: 'Trio',   price: 19.99, color: '#F7B267', plan: 'triple' },
+  'price_1TZ62sA6Nd5i0DdoH91GG4gU': { label: 'Full',   price: 29.99, color: '#7C6AF7', plan: 'quintuple' },
+};
+
+const PLAN_COLORS = {
+  free:       { color: '#9997b0', label: 'Free' },
+  single:     { color: '#4ECDC4', label: 'Single' },
+  triple:     { color: '#F7B267', label: 'Trio' },
+  quintuple:  { color: '#7C6AF7', label: 'Full' },
+};
+
+// Stato globale
+let allProfiles = [];
+let allSubjects = [];
+let allMessages = [];
+let allConversations = [];
+let userFilter = 'all';
+let matFilter  = 'all';
+let chartMaterieInst = null;
+let chartRevenueInst = null;
+
+// ── UTILS ──
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  return n.toString();
+}
+function fmtEur(n) { return '€' + n.toFixed(2).replace('.', ','); }
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  return d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit' });
+}
+function toast(msg, dur=2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+function el(id) { return document.getElementById(id); }
+
+// ── SWITCH PANEL ──
+let activePanel = 'overview';
+function switchPanel(name) {
+  document.querySelectorAll('.panel-view').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el('panel-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(name)) n.classList.add('active');
+  });
+  activePanel = name;
+  renderCurrentPanel();
+}
+
+// ── LOAD ALL ──
+async function loadAll() {
+  const icon = el('refreshIcon');
+  icon.style.animation = 'spin 0.7s linear infinite';
+  toast('⏳ Caricamento dati...');
+
+  try {
+    // Profiles
+    const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+    allProfiles = profiles || [];
+
+    // Subjects
+    const { data: subjects } = await sb.from('subjects').select('*').order('created_at', { ascending: false });
+    allSubjects = subjects || [];
+
+    // Conversations (count)
+    const { data: convs } = await sb.from('conversations').select('id, user_id, created_at').order('created_at', { ascending: false });
+    allConversations = convs || [];
+
+    // Messages
+    const { data: msgs } = await sb.from('messages').select('id, role, conversation_id, created_at').order('created_at', { ascending: false });
+    allMessages = msgs || [];
+
+    el('lastUpdated').textContent = 'Aggiornato: ' + new Date().toLocaleTimeString('it-IT');
+    toast('✅ Dati aggiornati');
+    renderCurrentPanel();
+    renderOverviewKPIs();
+  } catch(e) {
+    toast('❌ Errore: ' + e.message);
+    console.error(e);
+  }
+
+  icon.style.animation = '';
+}
+
+// ── RENDER CURRENT PANEL ──
+function renderCurrentPanel() {
+  if (activePanel === 'overview') renderOverview();
+  if (activePanel === 'utenti')   renderUtenti();
+  if (activePanel === 'incassi')  renderIncassi();
+  if (activePanel === 'materie')  renderMaterie();
+  if (activePanel === 'messaggi') renderMessaggi();
+}
+
+// ── OVERVIEW KPIs ──
+function renderOverviewKPIs() {
+  const total = allProfiles.length;
+  const paganti = allProfiles.filter(p => p.plan && p.plan !== 'free').length;
+  const freeCount = total - paganti;
+  const convRate = total > 0 ? Math.round(paganti / total * 100) : 0;
+
+  el('kpi-utenti').textContent = fmt(total);
+  el('kpi-utenti-sub').innerHTML = `<span class="up">↑</span> ${freeCount} free · ${paganti} paganti`;
+
+  el('kpi-paganti').textContent = fmt(paganti);
+  el('kpi-paganti-sub').innerHTML = `<span class="up">↑</span> ${convRate}% conversion rate`;
+
+  // Revenue stimata da subjects acquistati
+  let rev = 0;
+  allSubjects.forEach(s => {
+    if (s.is_paid && s.price_id && PRICE_MAP[s.price_id]) {
+      rev += PRICE_MAP[s.price_id].price;
+    }
+  });
+  el('kpi-revenue').textContent = fmtEur(rev);
+  el('kpi-revenue-sub').textContent = allSubjects.filter(s => s.is_paid).length + ' materie acquistate';
+
+  const totMsg = allMessages.length;
+  el('kpi-messaggi').textContent = fmt(totMsg);
+  el('kpi-messaggi-sub').textContent = allConversations.length + ' conversazioni';
+}
+
+// ── OVERVIEW ──
+function renderOverview() {
+  renderPlanBars();
+  renderRevBreakdown();
+  renderMaterieChart();
+  renderLastUsers();
+  renderLastSubjects();
+}
+
+function renderPlanBars() {
+  const counts = { free: 0, single: 0, triple: 0, quintuple: 0 };
+  allProfiles.forEach(p => { const k = p.plan || 'free'; if (counts[k] !== undefined) counts[k]++; });
+  const max = Math.max(...Object.values(counts), 1);
+
+  el('plan-bars').innerHTML = Object.entries(counts).map(([plan, count]) => {
+    const pct = Math.round(count / max * 100);
+    const { color, label } = PLAN_COLORS[plan] || { color: '#ccc', label: plan };
+    return `<div class="plan-row">
+      <span class="plan-label" style="color:${color}">${label}</span>
+      <div class="plan-bar-wrap"><div class="plan-bar" style="width:${pct}%;background:${color}"></div></div>
+      <span class="plan-count">${count}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderRevBreakdown() {
+  const totals = { single: 0, triple: 0, quintuple: 0 };
+  const counts = { single: 0, triple: 0, quintuple: 0 };
+
+  allSubjects.forEach(s => {
+    if (s.is_paid && s.price_id) {
+      const info = PRICE_MAP[s.price_id];
+      if (info && totals[info.plan] !== undefined) {
+        totals[info.plan] += info.price;
+        counts[info.plan]++;
+      }
+    }
+  });
+
+  const rows = [
+    { plan: 'single',    label: 'Single', color: '#4ECDC4' },
+    { plan: 'triple',    label: 'Trio',   color: '#F7B267' },
+    { plan: 'quintuple', label: 'Full',   color: '#7C6AF7' },
+  ];
+
+  el('rev-breakdown').innerHTML = rows.map(r => `
+    <div class="rev-item">
+      <div>
+        <div class="rev-name" style="color:${r.color}">${r.label}</div>
+        <div class="rev-sub">${counts[r.plan]} acquisti</div>
+      </div>
+      <div class="rev-amount" style="color:${r.color}">${fmtEur(totals[r.plan])}</div>
+    </div>
+  `).join('');
+}
+
+function renderMaterieChart() {
+  const paid   = allSubjects.filter(s => s.is_paid).length;
+  const free   = allSubjects.filter(s => !s.is_paid).length;
+  const now    = new Date();
+  const active = allSubjects.filter(s => s.expires_at && new Date(s.expires_at) > now).length;
+  const exp    = allSubjects.filter(s => s.expires_at && new Date(s.expires_at) <= now).length;
+
+  if (chartMaterieInst) chartMaterieInst.destroy();
+  const ctx = el('chartMaterie').getContext('2d');
+  chartMaterieInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Pagate', 'Free', 'Attive', 'Scadute'],
+      datasets: [{ data: [paid, free, active, exp], backgroundColor: ['#1D9E75','#9997b0','#4ECDC4','#e05252'], borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      cutout: '68%',
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 10, padding: 12 } } },
+      responsive: true, maintainAspectRatio: false,
+    }
+  });
+}
+
+function renderLastUsers() {
+  const last = allProfiles.slice(0, 8);
+  if (!last.length) { el('last-users-table').innerHTML = '<div class="empty-state">Nessun utente</div>'; return; }
+  el('last-users-table').innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Email / ID</th><th>Piano</th><th>DSA</th><th>Data</th></tr></thead>
+    <tbody>${last.map(p => `<tr>
+      <td><div class="td-email">${p.email || p.id?.slice(0,16)+'...' || '—'}</div></td>
+      <td><span class="td-plan"><span class="plan-dot" style="background:${(PLAN_COLORS[p.plan||'free']||{}).color||'#ccc'}"></span>${PLAN_COLORS[p.plan||'free']?.label||p.plan||'free'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${p.dsa_types?.join(', ') || '—'}</td>
+      <td class="td-date">${fmtDate(p.created_at)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderLastSubjects() {
+  const last = allSubjects.filter(s => s.is_paid).slice(0, 8);
+  if (!last.length) { el('last-subjects-table').innerHTML = '<div class="empty-state">Nessuna materia acquistata</div>'; return; }
+  el('last-subjects-table').innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Materia</th><th>Piano</th><th>Importo</th><th>Data</th></tr></thead>
+    <tbody>${last.map(s => {
+      const info = PRICE_MAP[s.price_id] || {};
+      return `<tr>
+        <td style="font-size:13px;font-weight:500">${s.name || '—'}</td>
+        <td><span style="font-size:11px;color:${info.color||'var(--muted)'}">${info.label||'—'}</span></td>
+        <td class="td-amount">${info.price ? fmtEur(info.price) : '—'}</td>
+        <td class="td-date">${fmtDate(s.purchased_at)}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── UTENTI ──
+function renderUtenti() {
+  let filtered = allProfiles;
+  if (userFilter !== 'all') filtered = filtered.filter(p => (p.plan || 'free') === userFilter);
+  const q = el('userSearch')?.value.toLowerCase() || '';
+  if (q) filtered = filtered.filter(p =>
+    (p.email||'').toLowerCase().includes(q) ||
+    (p.dsa_types||[]).join(' ').toLowerCase().includes(q)
+  );
+
+  if (!filtered.length) { el('users-table').innerHTML = '<div class="empty-state">Nessun utente trovato</div>'; return; }
+  el('users-table').innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Email</th><th>Piano</th><th>Materie rimanenti</th><th>DSA</th><th>Anno</th><th>Scadenza piano</th><th>Data registrazione</th></tr></thead>
+    <tbody>${filtered.map(p => {
+      const pc = PLAN_COLORS[p.plan||'free'] || { color:'#9997b0', label:'Free' };
+      return `<tr>
+        <td class="td-email">${p.email || p.id?.slice(0,20)+'...' || '—'}</td>
+        <td><span class="td-plan"><span class="plan-dot" style="background:${pc.color}"></span>${pc.label}</span></td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px">${p.subjects_remaining ?? '—'}</td>
+        <td style="font-size:12px;color:var(--muted)">${p.dsa_types?.join(', ') || '—'}</td>
+        <td style="font-size:12px;color:var(--muted)">${p.anno || '—'}</td>
+        <td class="td-date">${p.plan_expires_at ? fmtDate(p.plan_expires_at) : '—'}</td>
+        <td class="td-date">${fmtDate(p.created_at)}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function filterUsers() { renderUtenti(); }
+function setUserFilter(f, btn) {
+  userFilter = f;
+  document.querySelectorAll('[data-filter]').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderUtenti();
+}
+
+// ── INCASSI ──
+function renderIncassi() {
+  const counts = { single: 0, triple: 0, quintuple: 0 };
+  const totals = { single: 0, triple: 0, quintuple: 0 };
+  let grand = 0;
+
+  allSubjects.forEach(s => {
+    if (s.is_paid && s.price_id) {
+      const info = PRICE_MAP[s.price_id];
+      if (info) {
+        counts[info.plan]++;
+        totals[info.plan] += info.price;
+        grand += info.price;
+      }
+    }
+  });
+
+  el('inc-totale').textContent = fmtEur(grand);
+  el('inc-single').textContent = fmtEur(totals.single);
+  el('inc-single-n').textContent = counts.single + ' acquisti';
+  el('inc-trio').textContent = fmtEur(totals.triple);
+  el('inc-trio-n').textContent = counts.triple + ' acquisti';
+  el('inc-full').textContent = fmtEur(totals.quintuple);
+  el('inc-full-n').textContent = counts.quintuple + ' acquisti';
+
+  // Chart revenue
+  if (chartRevenueInst) chartRevenueInst.destroy();
+  const ctx = el('chartRevenue').getContext('2d');
+  chartRevenueInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Single', 'Trio', 'Full'],
+      datasets: [
+        { label: 'N° acquisti', data: [counts.single, counts.triple, counts.quintuple], backgroundColor: ['#4ECDC4','#F7B267','#7C6AF7'], borderRadius: 6, borderSkipped: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'DM Sans' } } },
+        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'DM Mono', size: 10 }, stepSize: 1 } }
+      }
+    }
+  });
+
+  // Materie pagate breakdown
+  const byPrice = {};
+  allSubjects.filter(s => s.is_paid && s.price_id).forEach(s => {
+    const info = PRICE_MAP[s.price_id];
+    if (!info) return;
+    if (!byPrice[s.price_id]) byPrice[s.price_id] = { info, count: 0, total: 0 };
+    byPrice[s.price_id].count++;
+    byPrice[s.price_id].total += info.price;
+  });
+  el('subjects-paid-breakdown').innerHTML = Object.values(byPrice).length
+    ? Object.values(byPrice).map(r => `
+        <div class="rev-item">
+          <div>
+            <div class="rev-name" style="color:${r.info.color}">${r.info.label}</div>
+            <div class="rev-sub">${r.count} materie · ${fmtEur(r.info.price)} cad.</div>
+          </div>
+          <div class="rev-amount" style="color:${r.info.color}">${fmtEur(r.total)}</div>
+        </div>`).join('')
+    : '<div class="empty-state">Nessun acquisto registrato</div>';
+
+  // Tabella materie pagate
+  const paid = allSubjects.filter(s => s.is_paid).slice(0, 30);
+  el('paid-subjects-table').innerHTML = paid.length
+    ? `<div class="table-wrap"><table>
+      <thead><tr><th>Materia</th><th>User ID</th><th>Piano</th><th>Importo</th><th>Acquistato</th><th>Esame</th><th>Scadenza</th></tr></thead>
+      <tbody>${paid.map(s => {
+        const info = PRICE_MAP[s.price_id] || {};
+        return `<tr>
+          <td style="font-size:13px;font-weight:500">${s.name || '—'}</td>
+          <td class="td-email">${s.user_id?.slice(0,16)+'...' || '—'}</td>
+          <td><span style="font-size:11px;color:${info.color||'var(--muted)'}">${info.label||'—'}</span></td>
+          <td class="td-amount">${info.price ? fmtEur(info.price) : '—'}</td>
+          <td class="td-date">${fmtDate(s.purchased_at)}</td>
+          <td class="td-date">${s.exam_date ? fmtDate(s.exam_date) : '—'}</td>
+          <td class="td-date">${s.expires_at ? fmtDate(s.expires_at) : '—'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`
+    : '<div class="empty-state">Nessuna materia acquistata</div>';
+}
+
+// ── MATERIE ──
+function renderMaterie() {
+  const now = new Date();
+  let filtered = allSubjects;
+  if (matFilter === 'paid')    filtered = filtered.filter(s => s.is_paid);
+  if (matFilter === 'free')    filtered = filtered.filter(s => !s.is_paid);
+  if (matFilter === 'active')  filtered = filtered.filter(s => s.expires_at && new Date(s.expires_at) > now);
+  if (matFilter === 'expired') filtered = filtered.filter(s => s.expires_at && new Date(s.expires_at) <= now);
+
+  el('materie-table').innerHTML = filtered.length
+    ? `<div class="table-wrap"><table>
+      <thead><tr><th>Nome</th><th>User ID</th><th>Pagata</th><th>Piano</th><th>Esame</th><th>Scadenza</th><th>Creata</th></tr></thead>
+      <tbody>${filtered.map(s => {
+        const info = PRICE_MAP[s.price_id] || {};
+        const expired = s.expires_at && new Date(s.expires_at) <= now;
+        return `<tr>
+          <td style="font-size:13px;font-weight:500">${s.name || '—'}</td>
+          <td class="td-email">${s.user_id?.slice(0,16)+'...' || '—'}</td>
+          <td>${s.is_paid ? '<span class="badge badge-green">✓ Sì</span>' : '<span class="badge badge-amber">Free</span>'}</td>
+          <td><span style="font-size:11px;color:${info.color||'var(--muted2)'}">${info.label||'—'}</span></td>
+          <td class="td-date">${s.exam_date ? fmtDate(s.exam_date) : '—'}</td>
+          <td class="td-date" style="color:${expired?'var(--red)':'inherit'}">${s.expires_at ? fmtDate(s.expires_at) : '—'}</td>
+          <td class="td-date">${fmtDate(s.created_at)}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`
+    : '<div class="empty-state">Nessuna materia</div>';
+}
+
+function setMatFilter(f, btn) {
+  matFilter = f;
+  document.querySelectorAll('[data-mf]').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderMaterie();
+}
+
+// ── MESSAGGI ──
+function renderMessaggi() {
+  const tot  = allMessages.length;
+  const user = allMessages.filter(m => m.role === 'user').length;
+  const ai   = allMessages.filter(m => m.role === 'assistant').length;
+  el('msg-tot').textContent  = fmt(tot);
+  el('msg-user').textContent = fmt(user);
+  el('msg-ai').textContent   = fmt(ai);
+  el('msg-convs').textContent = fmt(allConversations.length);
+
+  // Uso per utente: join conv → messages
+  const convByUser = {};
+  allConversations.forEach(c => { convByUser[c.id] = c.user_id; });
+  const userMsg = {};
+  allMessages.forEach(m => {
+    if (m.role !== 'user') return;
+    const uid = convByUser[m.conversation_id];
+    if (!uid) return;
+    userMsg[uid] = (userMsg[uid] || 0) + 1;
+  });
+
+  const sorted = Object.entries(userMsg).sort((a,b) => b[1]-a[1]).slice(0,20);
+  const profileMap = {};
+  allProfiles.forEach(p => { profileMap[p.id] = p; });
+
+  el('usage-table').innerHTML = sorted.length
+    ? `<div class="table-wrap"><table>
+      <thead><tr><th>Email / ID</th><th>Piano</th><th>Msg inviati</th><th>Bar</th></tr></thead>
+      <tbody>${sorted.map(([uid, count]) => {
+        const p = profileMap[uid] || {};
+        const pc = PLAN_COLORS[p.plan||'free'] || { color:'#9997b0' };
+        const pct = Math.round(count / (sorted[0]?.[1]||1) * 100);
+        return `<tr>
+          <td class="td-email">${p.email || uid.slice(0,20)+'...'}</td>
+          <td><span style="font-size:11px;color:${pc.color}">${pc.label||p.plan||'free'}</span></td>
+          <td style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500">${count}</td>
+          <td style="width:120px"><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${pc.color};border-radius:3px"></div></div></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`
+    : '<div class="empty-state">Nessun dato messaggi</div>';
+}
+
+// ── LOGIN ADMIN ──
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Inserisci email e password.'; return; }
+
+  btn.disabled = true; btn.textContent = '⏳ Accesso...';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  if (error) {
+    errEl.textContent = 'Credenziali non valide.';
+    btn.disabled = false; btn.textContent = 'Accedi come admin';
+    return;
+  }
+
+  // Verifica flag is_admin nella tabella profiles
+  const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', data.user.id).single();
+
+  if (!profile?.is_admin) {
+    await sb.auth.signOut();
+    errEl.textContent = '⛔ Accesso negato. Non sei un amministratore.';
+    btn.disabled = false; btn.textContent = 'Accedi come admin';
+    return;
+  }
+
+  // Login ok → mostra app
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appRoot').classList.add('visible');
+  btn.disabled = false; btn.textContent = 'Accedi come admin';
+  loadAll();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appRoot').classList.remove('visible');
+}
+
+// ── INIT: controlla sessione esistente ──
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', session.user.id).single();
+    if (profile?.is_admin) {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appRoot').classList.add('visible');
+      loadAll();
+      return;
+    }
+    await sb.auth.signOut();
+  }
+  // Mostra login
+  document.getElementById('loginScreen').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
