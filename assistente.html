@@ -7,6 +7,9 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://ondamente.it/assistente">
 <link rel="stylesheet" href="assistente.css">
+<style>
+  :root { --sab: env(safe-area-inset-bottom, 0px); }
+</style>
 </head>
 <body>
 
@@ -515,6 +518,7 @@ async function loadSubject(subject) {
   else currentSubject.bookChunks = [];
   resetChatUI();
   updateMobDrawer();
+  setTimeout(updateMessagesPadding, 100);
   await loadConversations();
 }
 
@@ -1070,8 +1074,12 @@ function updateMessagesPadding() {
   if(!inputArea || !messages) return;
   const inputH  = inputArea.offsetHeight || 0;
   const bottomH = bottomNav ? (bottomNav.offsetHeight || 58) : 0;
-  // Extra margine di sicurezza 16px
-  messages.style.paddingBottom = (inputH + bottomH + 16) + 'px';
+  // Safe area per iPhone con gesture bar (es. iPhone X+)
+  const safeArea = parseInt(
+    getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0'
+  ) || 0;
+  // Extra margine di sicurezza 20px
+  messages.style.paddingBottom = (inputH + bottomH + safeArea + 20) + 'px';
 }
 
 // Aggiorna al resize della finestra e all'orientamento
@@ -1176,6 +1184,8 @@ function sttToggle() {
 document.addEventListener('DOMContentLoaded', function() {
   sttInit();
   updateMessagesPadding();
+  // Secondo aggiornamento dopo rendering completo (input-area potrebbe non avere ancora altezza)
+  setTimeout(updateMessagesPadding, 300);
 });
 const SW=new Set(['il','lo','la','i','gli','le','un','uno','una','di','del','della','dei','degli','delle','a','ad','al','alla','ai','agli','alle','da','dal','dalla','dai','dagli','dalle','in','nel','nella','nei','negli','nelle','su','sul','sulla','sui','sugli','sulle','con','per','tra','fra','che','chi','cui','non','più','ma','se','come','quando','dove','mentre','e','o','è','si','ci','ne','mi','ti','vi','li','lo','ha','ho','hanno','era','sono','fu','sia','sta','stato','anche','così','già','poi','però','questo','questa','questi','queste','quello','quella','quelli','quelle','tutto','tutti','tutta','tutte','ogni','molto','altri','altre','altro','altra','suo','sua','suoi','sue','loro','mio','mia','miei','mie','tuo','tua','tuoi','tue','nostro','nostra','nostri','nostre','vostro','vostra','vostri','vostre','cosa','quale','quali','quanto','quanta','quanti','quante','può','deve','viene','vengono','essere','fare','avere','perché','quindi','allora','prima','dopo','sempre','mai','spesso','ancora','solo','proprio','invece','cioè','ossia','ovvero','oppure','durante','secondo','rispetto','circa','oltre','entro','fino','verso','presso','sopra','sotto','dentro','fuori','insieme','senza','contro','poiché','siccome','dato','parte','caso','modo','fatto','punto','base','causa','fine','tempo','anno','anni','mese','mesi','giorno','giorni','volta','volte','livello','ambito','campo','area','aspetto','forma','tipo']);
 function tok(t){return t.toLowerCase().replace(/[^a-zàáèéìíòóùú\s]/gi,' ').split(/\s+/).filter(w=>w.length>2&&!SW.has(w));}
