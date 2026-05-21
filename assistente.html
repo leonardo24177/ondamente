@@ -790,7 +790,7 @@ function setMode(m) {
 }
 function qa(t) { sendUserMessage(t); }
 function handleKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
-function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; updateMessagesPadding(); }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,140)+'px'; }
 function sendMessage() { const inp=document.getElementById('userInput'),t=inp.value.trim(); if(!t||isLoading) return; inp.value='';inp.style.height='auto'; sendUserMessage(t); }
 
 async function sendUserMessage(text) {
@@ -843,20 +843,14 @@ function hideSaving() { document.getElementById('saveInd').classList.remove('v')
 
 function fmt(text) {
   let h=text
-    .replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h3>$1</h3>')
     .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')
     .replace(/💡 (.+)/g,'<div class="ib">💡 $1</div>')
     .replace(/✅ (.+)/g,'<div class="ok-box">✅ $1</div>')
     .replace(/^[-•] (.+)$/gm,'<li>$1</li>').replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
   h=h.replace(/(<li>.*?<\/li>\n?)+/gs,m=>'<ul>'+m+'</ul>');
-  // Wrapping paragrafi sicuro: non wrappa tag block-level già presenti
-  const blockRe = /^<(h[1-6]|ul|ol|li|div|blockquote)/;
-  h=h.split('\n\n').map(p=>{
-    const t=p.trim();
-    if(!t || blockRe.test(t)) return t;
-    return '<p>'+t+'</p>';
-  }).join('\n\n');
-  return h||'<p>'+text+'</p>';
+  h=h.split('\n\n').map(p=>p.trim()).filter(p=>p&&!p.startsWith('<')).reduce((a,p)=>a.replace(p,`<p>${p}</p>`),h);
+  return h||`<p>${text}</p>`;
 }
 
 function toggleSpacing() {
@@ -1082,7 +1076,12 @@ function updateMessagesPadding() {
 window.addEventListener('resize', updateMessagesPadding);
 window.addEventListener('orientationchange', () => setTimeout(updateMessagesPadding, 300));
 
-// updateMessagesPadding già integrata in autoResize
+// Aggiorna anche quando la textarea cambia altezza
+const _autoResize = autoResize;
+function autoResize(el) {
+  _autoResize(el);
+  updateMessagesPadding();
+}
 let sttRecognition = null;
 let sttActive = false;
 
@@ -1360,17 +1359,26 @@ async function callAPI() {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
+        model:'claude-sonnet-4-5',
         max_tokens:700,
         system:sys,
         messages:msgs,
-        mode:currentMode,
         user_id:currentUser?.id||null,
         conversation_id:currentConvId||null,
         subject_id:currentSubject?.id||null
       })
     });
     const data = await res.json();
-    if(data.error){removeTyping();appendAIUI('⚠️ Errore API: ' + data.error.message + ' (status: ' + res.status + ')');return;}
+    if(data.error){
+      removeTyping();
+      if(data.error.code === 'EXAM_DATE_MISSING') {
+        // Rimuovi l'ultimo messaggio utente dalla history per non richiamarlo doppio
+        showExamDateModal();
+        return;
+      }
+      appendAIUI('⚠️ Errore API: ' + data.error.message + ' (status: ' + res.status + ')');
+      return;
+    }
     if(!data.content){removeTyping();appendAIUI('⚠️ Risposta vuota dal server. Status: ' + res.status + '. Risposta: ' + JSON.stringify(data).substring(0,200));return;}
     const text = data.content?.map(c=>c.text||'').join('')||'Non riesco a rispondere al momento.';
     removeTyping(); appendAIUI(text);
@@ -1380,11 +1388,87 @@ async function callAPI() {
     if(!isLocal) {
       showSaving();
       sb.from('messages').insert({conversation_id:currentConvId,role:'assistant',content:text}).then(()=>{});
-      sb.from('conversations').update({updated_at:new Date().toISOString()}).eq('id',currentConvId).then(()=>{ hideSaving(); }).catch(()=>{ hideSaving(); });
+      sb.from('conversations').update({updated_at:new Date().toISOString()}).eq('id',currentConvId).then(()=>{ hideSaving(); });
     }
   } catch(e) {
     removeTyping(); appendAIUI('⚠️ Errore di connessione. Riprova tra qualche secondo.');
     conversationHistory.pop();
+  }
+}
+
+/* ── EXAM DATE MODAL ──────────────────────────────────────────── */
+function showExamDateModal() {
+  document.getElementById('examDateModal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'examDateModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;';
+
+  // Data minima = domani, data massima dipende dal piano
+  const CAP_DAYS = { single: 90, triple: 120, quintuple: 150 };
+  // Recupera il piano dal profilo (se disponibile), default 90gg
+  const plan = userProfile?.plan || 'free';
+  const cap = CAP_DAYS[plan] ?? 90;
+  const minDate = new Date(); minDate.setDate(minDate.getDate() + 1);
+  const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + cap);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;max-width:420px;width:100%;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));"></div>
+      <div style="font-size:40px;margin-bottom:16px;">📅</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:10px;">Quando hai l'esame?</div>
+      <p style="color:var(--text-dim);font-size:14px;line-height:1.6;margin-bottom:24px;">
+        Imposta la data del tuo esame per attivare l'accesso. L'accesso durerà fino a 10 giorni dopo la data indicata.
+      </p>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:13px;color:var(--text-dim);margin-bottom:8px;">Data esame</label>
+        <input type="date" id="examDateInput"
+          min="${fmt(minDate)}" max="${fmt(maxDate)}"
+          style="width:100%;padding:12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;box-sizing:border-box;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="saveExamDate()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          ✅ Salva e inizia
+        </button>
+        <button onclick="document.getElementById('examDateModal').remove()" style="background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:8px;font-family:'DM Sans',sans-serif;">
+          Annulla
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function saveExamDate() {
+  const input = document.getElementById('examDateInput');
+  if(!input?.value) { input.style.borderColor='var(--danger)'; return; }
+
+  const examDate = new Date(input.value);
+  // expires_at = data esame + 10 giorni
+  const expiresAt = new Date(examDate.getTime() + 10 * 24 * 60 * 60 * 1000);
+
+  const btn = input.closest('div[style]')?.querySelector('button');
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Salvataggio...'; }
+
+  const { error } = await sb.from('subjects').update({
+    expires_at: expiresAt.toISOString()
+  }).eq('id', currentSubject.id);
+
+  if(error) {
+    console.error('Errore salvataggio data esame:', error);
+    if(btn) { btn.disabled = false; btn.textContent = '✅ Salva e inizia'; }
+    alert('Errore nel salvataggio. Riprova.');
+    return;
+  }
+
+  // Aggiorna l'oggetto in memoria
+  currentSubject.expires_at = expiresAt.toISOString();
+  document.getElementById('examDateModal')?.remove();
+
+  // Riprova l'ultimo messaggio dell'utente
+  const lastUser = conversationHistory[conversationHistory.length - 1];
+  if(lastUser?.role === 'user') {
+    showTyping();
+    await callAPI();
   }
 }
 
