@@ -51,6 +51,27 @@
 </script>
 
 <link rel="stylesheet" href="style.css">
+<style>
+  /* ── PDF bar nel mockup ── */
+  .mockup-pdf-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(29,158,117,0.12);
+    border-bottom: 1px solid rgba(29,158,117,0.18);
+    padding: 10px 20px;
+    font-size: 12px;
+  }
+  .mockup-pdf-ico { font-size: 15px; }
+  .mockup-pdf-name { color: rgba(255,255,255,0.65); font-family: 'DM Mono', monospace; flex: 1; }
+  .mockup-pdf-status { color: var(--teal); font-weight: 700; font-size: 11px; letter-spacing: 0.05em; }
+
+  /* ── Riga facoltà nell'hero ── */
+  .hero-faculties {
+    margin-top: 18px;
+    font-size: 13px; color: var(--muted2);
+    animation: fadeUp 0.7s 0.35s ease both;
+  }
+  .hero-faculties span { color: var(--muted); font-weight: 500; }
+</style>
 </head>
 <body>
 
@@ -89,7 +110,7 @@
 
   <h1>Ogni mente ha<br>la sua <span class="hl-violet">onda.</span><br><span class="hl-teal">La tua è qui.</span></h1>
 
-  <p class="hero-lead">OndaMente è l'assistente universitario che si adatta a come <em>tu</em> impari — non il contrario. Dislessia, ADHD, Discalculia, BES: ogni risposta è costruita intorno al tuo profilo.</p>
+  <p class="hero-lead">OndaMente è l'assistente universitario che si adatta a come <em>tu</em> impari — non il contrario. Carica il PDF del tuo manuale e studia con un assistente costruito intorno al tuo profilo: Dislessia, ADHD, Discalculia, BES.</p>
 
   <div class="hero-profiles">
     <span class="hero-profile-tag dsa-tag">🧩 Dislessia</span>
@@ -102,13 +123,21 @@
 
   <div class="hero-actions">
     <a href="assistente.html" class="btn-main">🚀 Prova gratis — nessuna carta</a>
-    <a href="#profili" class="btn-ghost">Scopri i profili DSA →</a>
+    <a href="#come-funziona" class="btn-ghost">Come funziona →</a>
+  </div>
+  <div class="hero-faculties">
+    Usato per: <span>Giurisprudenza</span> · <span>Medicina</span> · <span>Psicologia</span> · <span>Ingegneria</span> · <span>Economia</span> · <span>Lettere</span> e altro ancora
   </div>
 
   <div class="hero-mockup">
     <div class="mockup-top">
       <div class="mdots"><div class="mdot"></div><div class="mdot"></div><div class="mdot"></div></div>
       <div class="mtitle">OndaMente — Assistente adattivo</div>
+    </div>
+    <div class="mockup-pdf-bar">
+      <span class="mockup-pdf-ico">📄</span>
+      <span class="mockup-pdf-name">Diritto_Privato_Torrente.pdf</span>
+      <span class="mockup-pdf-status">✓ Caricato</span>
     </div>
     <div class="mockup-chat">
       <div class="mc-msg">
@@ -175,6 +204,48 @@
           <div class="story-quote-name">Chiara V.</div>
           <div class="story-quote-role">Scienze della Formazione · Dislessia + ADHD</div>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COME FUNZIONA -->
+<section class="steps-sec" id="come-funziona">
+  <div class="steps-inner">
+    <div class="sec-label">Come funziona</div>
+    <div class="sec-title">Quattro passi verso<br>l'esame che <span class="tl">meriti</span></div>
+    <div class="steps-grid">
+      <div class="step-item reveal">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">🎓</span>
+          <div class="step-num">1</div>
+        </div>
+        <h3>Il tuo percorso</h3>
+        <p>Università, corso, anno. L'assistente si configura sul tuo contesto accademico in 60 secondi.</p>
+      </div>
+      <div class="step-item reveal" style="transition-delay:0.1s">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">📂</span>
+          <div class="step-num">2</div>
+        </div>
+        <h3>Carica il libro</h3>
+        <p>PDF del manuale universitario. Fino a 50MB. Viene salvato nel tuo account — disponibile su tutti i dispositivi.</p>
+      </div>
+      <div class="step-item reveal" style="transition-delay:0.2s">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">🧩</span>
+          <div class="step-num">3</div>
+        </div>
+        <h3>Il profilo DSA</h3>
+        <p>Seleziona uno o più profili. Puoi saltarlo: l'assistente funziona per tutti, ma è più potente con il profilo attivo.</p>
+      </div>
+      <div class="step-item reveal" style="transition-delay:0.3s">
+        <div class="step-num-wrap">
+          <span style="font-size:22px;">💬</span>
+          <div class="step-num">4</div>
+        </div>
+        <h3>Studia a modo tuo</h3>
+        <p>Spiega, quiz, mappa, ripasso, audio, scaffolding. Puoi parlare anche con il microfono. Ogni risposta è calibrata su di te.</p>
       </div>
     </div>
   </div>
@@ -295,48 +366,6 @@
   </div>
 </section>
 
-<!-- COME FUNZIONA -->
-<section class="steps-sec" id="come-funziona">
-  <div class="steps-inner">
-    <div class="sec-label">Come funziona</div>
-    <div class="sec-title">Quattro passi verso<br>l'esame che <span class="tl">meriti</span></div>
-    <div class="steps-grid">
-      <div class="step-item reveal">
-        <div class="step-num-wrap">
-          <span style="font-size:22px;">🎓</span>
-          <div class="step-num">1</div>
-        </div>
-        <h3>Il tuo percorso</h3>
-        <p>Università, corso, anno. L'assistente si configura sul tuo contesto accademico in 60 secondi.</p>
-      </div>
-      <div class="step-item reveal" style="transition-delay:0.1s">
-        <div class="step-num-wrap">
-          <span style="font-size:22px;">🧩</span>
-          <div class="step-num">2</div>
-        </div>
-        <h3>Il profilo DSA</h3>
-        <p>Seleziona uno o più profili. Puoi saltarlo: l'assistente funziona per tutti, ma è più potente con il profilo attivo.</p>
-      </div>
-      <div class="step-item reveal" style="transition-delay:0.2s">
-        <div class="step-num-wrap">
-          <span style="font-size:22px;">📂</span>
-          <div class="step-num">3</div>
-        </div>
-        <h3>Carica il libro</h3>
-        <p>PDF del manuale universitario. Fino a 50MB. Viene salvato nel tuo account — disponibile su tutti i dispositivi.</p>
-      </div>
-      <div class="step-item reveal" style="transition-delay:0.3s">
-        <div class="step-num-wrap">
-          <span style="font-size:22px;">💬</span>
-          <div class="step-num">4</div>
-        </div>
-        <h3>Studia a modo tuo</h3>
-        <p>Spiega, quiz, mappa, ripasso, audio, scaffolding. Puoi parlare anche con il microfono. Ogni risposta è calibrata su di te.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- SUPPORTO LEGALE/NORMATIVO -->
 <section class="legal-sec">
   <div class="legal-inner">
@@ -447,7 +476,7 @@
           <li>Ogni materia scade 10 gg dopo l'esame</li>
         </ul>
         <button class="plan-btn" onclick="openCheckout('price_1TZ62JA6Nd5i0DdoeAnDeQlT')">Acquista — €19,99</button>
-        <div class="plan-note">Valido fino al 31 luglio</div>
+        <div class="plan-note">Le materie si attivano quando vuoi, entro luglio 2026</div>
       </div>
 
       <!-- 5 MATERIE -->
@@ -470,7 +499,7 @@
           <li>Ogni materia scade 10 gg dopo l'esame</li>
         </ul>
         <button class="plan-btn" onclick="openCheckout('price_1TZ62sA6Nd5i0DdoH91GG4gU')">Acquista — €29,99</button>
-        <div class="plan-note">Valido fino al 31 luglio</div>
+        <div class="plan-note">Le materie si attivano quando vuoi, entro luglio 2026</div>
       </div>
 
     </div>
@@ -484,7 +513,6 @@
     <div class="sec-title">Chi lo usa già</div>
     <div class="testi-grid">
       <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
         <div class="testi-tag">🧩 Dislessia + ADHD</div>
         <p class="testi-text">"Per la prima volta un'app che non mi tratta da stupida. Le frasi brevi e i chunk numerati hanno cambiato completamente come studio. Ho passato Pedagogia al primo appello."</p>
         <div class="testi-author">
@@ -496,7 +524,6 @@
         </div>
       </div>
       <div class="testi-card reveal" style="transition-delay:0.1s">
-        <div class="testi-stars">★★★★★</div>
         <div class="testi-tag">🔊 Sintesi vocale</div>
         <p class="testi-text">"La modalità audio è fondamentale per me. Ascolto le spiegazioni mentre cammino. L'assistente legge senza abbreviazioni strane e le frasi si sentono benissimo."</p>
         <div class="testi-author">
@@ -508,7 +535,6 @@
         </div>
       </div>
       <div class="testi-card reveal" style="transition-delay:0.2s">
-        <div class="testi-stars">★★★★★</div>
         <div class="testi-tag">⚡ ADHD</div>
         <p class="testi-text">"Il modo in cui inizia sempre con 'Stiamo parlando di: [tema]' mi salva la vita. So sempre dove sono. E quando sbaglio una risposta mi spiega il mio errore, non mi giudica."</p>
         <div class="testi-author">
