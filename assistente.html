@@ -457,7 +457,11 @@ function renderSubjectScreen(subjects) {
     const d = document.createElement('div');
     d.className = 'subj-item';
     const dsaNote = s.dsa_profile ? ` · 🧩 ${s.dsa_profile}` : '';
-    d.innerHTML = `<div><div class="subj-item-name">${s.materia}</div><div class="subj-item-meta">${userProfile.corso||''}${userProfile.anno?' · '+userProfile.anno:''}${dsaNote}</div>${s.book_name?`<div class="subj-item-book">📄 ${s.book_name}</div>`:''}</div><span style="color:var(--text-dim);font-size:18px;">›</span>`;
+    const extraCount = (s.extra_files && Array.isArray(s.extra_files)) ? s.extra_files.length : 0;
+    const fileNote = s.book_name
+      ? `<div class="subj-item-book">📄 ${s.book_name}${extraCount > 0 ? ` <span style="color:var(--text-dim);">+${extraCount} file</span>` : ''}</div>`
+      : '';
+    d.innerHTML = `<div><div class="subj-item-name">${s.materia}</div><div class="subj-item-meta">${userProfile.corso||''}${userProfile.anno?' · '+userProfile.anno:''}${dsaNote}</div>${fileNote}</div><span style="color:var(--text-dim);font-size:18px;">›</span>`;
     d.onclick = () => { scr.classList.add('hidden'); loadSubject(s); };
     list.appendChild(d);
   });
@@ -497,7 +501,7 @@ async function loadSubject(subject) {
   currentSubject = subject;
   currentConvId = null;
   conversationHistory = [];
-  // Recupera DSA da localStorage se non già nell'oggetto (soggetti caricati dal DB non hanno la colonna)
+  // Recupera DSA da localStorage se non già nell'oggetto
   if(!currentSubject.dsa_profile && currentUser) {
     currentSubject.dsa_profile = localStorage.getItem('sm_dsa_' + currentUser.id) || null;
   }
@@ -505,12 +509,7 @@ async function loadSubject(subject) {
     currentSubject.dsa_tools = localStorage.getItem('sm_str_' + currentUser.id) || null;
   }
   document.getElementById('btnCambia').style.display='block';
-  if(subject.book_name) {
-    document.getElementById('bkSection').style.display='block';
-    document.getElementById('bkName').textContent = subject.book_name;
-  } else {
-    document.getElementById('bkSection').style.display='none';
-  }
+  // Profilo DSA sidebar
   if(currentSubject.dsa_profile) {
     document.getElementById('dsaSection').style.display='block';
     document.getElementById('dsaTagsDisplay').innerHTML =
@@ -518,8 +517,6 @@ async function loadSubject(subject) {
   } else {
     document.getElementById('dsaSection').style.display='none';
   }
-  if(subject.book_text) currentSubject.bookChunks = chunkText(subject.book_text,1200,150);
-  else currentSubject.bookChunks = [];
   // Popola subjectFiles con tutti i file della materia
   subjectFiles = [];
   if(subject.book_name && subject.book_text) {
@@ -528,6 +525,10 @@ async function loadSubject(subject) {
   if(subject.extra_files && Array.isArray(subject.extra_files)) {
     subject.extra_files.forEach(f=>subjectFiles.push({name:f.name, text:f.text, active:false}));
   }
+  // Imposta chunks RAG sul file attivo
+  const activeFile = subjectFiles.find(f=>f.active);
+  currentSubject.bookChunks = activeFile ? chunkText(activeFile.text,1200,150) : [];
+  currentSubject.book_name = activeFile?.name || null;
   renderFileLists();
   resetChatUI();
   updateMobDrawer();
