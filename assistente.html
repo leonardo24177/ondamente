@@ -166,6 +166,7 @@
         <div style="font-size:40px;margin-bottom:12px;">📂</div>
         <div style="font-weight:700;margin-bottom:6px;">Clicca o trascina il PDF</div>
         <div style="font-size:13px;color:var(--text-dim);">Fino a 50MB · PDF con testo selezionabile</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">PDF scansionato? <a href="https://www.ilovepdf.com/ocr-pdf" target="_blank" rel="noopener" style="color:var(--accent2);text-decoration:underline;">Convertilo prima →</a></div>
       </div>
       <div style="text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:20px;">oppure</div>
       <button class="ob-btn" id="btnFine" onclick="finishOnboarding()">🚀 Inizia senza libro</button>
@@ -606,48 +607,38 @@ async function finishOnboarding() {
   if(dsaStr) localStorage.setItem('sm_dsa_' + currentUser.id, dsaStr);
   if(strStr) localStorage.setItem('sm_str_' + currentUser.id, strStr);
 
-  // STEP 1: Insert veloce senza book_text
+  // Tronca book_text per evitare payload troppo grandi su Supabase (max 500k char ≈ 350 pagine)
+  const MAX_BOOK_CHARS = 500000;
+  const bookText = pendingBook?.text ? pendingBook.text.slice(0, MAX_BOOK_CHARS) : null;
+
+  // Insert con timeout di 15 secondi per evitare il bottone bloccato su "Salvataggio..."
   let subj, error;
   try {
-    const { data, error: err } = await sb.from('subjects').insert({
-      user_id: currentUser.id,
-      materia: sel.materiaVal,
-      stile: sel.stile,
-      esame: sel.esame,
-      book_name: pendingBook?.name || null,
-      book_text: null
+    const insertPromise = sb.from('subjects').insert({
+      user_id:currentUser.id, materia:sel.materiaVal,
+      stile:sel.stile, esame:sel.esame,
+      book_name:pendingBook?.name||null, book_text:bookText
     }).select().single();
-    subj = data; error = err;
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 15000)
+    );
+
+    const result = await Promise.race([insertPromise, timeoutPromise]);
+    subj = result.data; error = result.error;
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = '🚀 Inizia senza libro';
-    console.error('Insert error:', e);
+    btn.disabled=false;
+    btn.textContent='🚀 Inizia senza libro';
+    if(e.message === 'timeout') {
+      alert('Il salvataggio ha impiegato troppo tempo. Il PDF potrebbe essere troppo grande. Riprova o usa un file più piccolo.');
+    } else {
+      console.error('Insert error:', e);
+    }
     return;
   }
 
-  btn.disabled = false;
-  if(error || !subj) {
-    btn.textContent = '🚀 Inizia senza libro';
-    console.error('Supabase error:', error);
-    return;
-  }
-
-  // STEP 2: Salva book_text in background (non blocca l'utente)
-  if(pendingBook?.text) {
-    const MAX_BOOK_CHARS = 500000;
-    const bookText = pendingBook.text.slice(0, MAX_BOOK_CHARS);
-    sb.from('subjects')
-      .update({ book_text: bookText })
-      .eq('id', subj.id)
-      .then(({ error: e }) => {
-        if(e) console.error('Errore salvataggio book_text:', e);
-        else if(currentSubject) {
-          currentSubject.book_text = bookText;
-          currentSubject.bookChunks = chunkText(bookText, 1200, 150);
-        }
-      });
-    subj.book_text = pendingBook.text;
-  }
+  btn.disabled=false;
+  if(error) { btn.textContent='🚀 Inizia senza libro'; console.error('Supabase error:', error); return; }
   // Inietta DSA nell'oggetto subject in memoria
   subj.dsa_profile = dsaStr;
   subj.dsa_tools   = strStr;
@@ -662,8 +653,31 @@ function hlErr(id) {
 }
 
 /* ── UPLOAD PDF ── */
+function showScanWarning() {
+  // Rimuovi avviso precedente se esiste
+  document.getElementById('scanWarning')?.remove();
+  const warn = document.createElement('div');
+  warn.id = 'scanWarning';
+  warn.style.cssText = 'margin-top:16px;padding:14px 16px;background:rgba(255,180,0,0.1);border:1.5px solid rgba(255,180,0,0.4);border-radius:12px;font-size:13px;line-height:1.6;color:var(--text);';
+  warn.innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px;">⚠️ PDF non leggibile (scansione)</div>
+    <div style="color:var(--text-dim);">Questo PDF sembra contenere solo immagini. OndaMente non riesce a leggere il testo.</div>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+      <a href="https://www.ilovepdf.com/ocr-pdf" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,180,0,0.15);border:1px solid rgba(255,180,0,0.4);border-radius:8px;color:var(--text);text-decoration:none;font-weight:600;font-size:13px;width:fit-content;">
+        🔄 Converti gratis su ilovepdf.com →
+      </a>
+      <div style="font-size:12px;color:var(--text-dim);">Carica il PDF su ilovepdf → OCR PDF → scarica → ricarica qui.</div>
+    </div>`;
+  // Inserisce dopo upZone o upOk
+  const ref = document.getElementById('upOk');
+  ref.parentNode.insertBefore(warn, ref.nextSibling);
+}
+
 function handleFile(input) {
   const file = input.files[0]; if(!file) return;
+  // Rimuovi eventuale avviso precedente
+  document.getElementById('scanWarning')?.remove();
   document.getElementById('upFn').textContent = file.name;
   document.getElementById('upProg').classList.add('v');
   document.getElementById('upZone').style.display='none';
@@ -677,6 +691,16 @@ function handleFile(input) {
     clearInterval(iv); fill.style.width='100%'; pctEl.textContent='100%';
     setTimeout(()=>{
       document.getElementById('upProg').classList.remove('v');
+      // Controlla se il testo estratto è troppo scarso (probabile scansione)
+      const cleanText = text.replace(/\s+/g,' ').trim();
+      if(cleanText.length < 200) {
+        // Scansione rilevata: mostra avviso, ripristina zona upload
+        document.getElementById('upOk').classList.remove('v');
+        document.getElementById('upZone').style.display='';
+        document.getElementById('fileInput').value='';
+        showScanWarning();
+        return;
+      }
       document.getElementById('upOk').classList.add('v');
       document.getElementById('upOkTxt').textContent=`"${file.name}" caricato!`;
       document.getElementById('btnFine').textContent='🚀 Inizia a studiare!';
