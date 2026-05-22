@@ -688,23 +688,58 @@ function fileIcon(name) {
 function renderFileLists() {
   const makeItem = (f, idx) => {
     const ic = fileIcon(f.name);
-    const shortName = f.name.length > 22 ? f.name.substring(0,20)+'…' : f.name;
-    return `<div class="bk-info" style="cursor:pointer;opacity:${f.active?1:0.55};border:1.5px solid ${f.active?'var(--accent)':'var(--border)'};border-radius:8px;margin-bottom:4px;padding:6px 8px;gap:6px;" onclick="setActiveFile(${idx})" title="${f.name}">
-      <div class="bk-label">${ic}</div>
-      <div class="bk-name" style="font-size:12px;flex:1;">${shortName}</div>
-      ${f.active?'<span style="font-size:10px;color:var(--accent);font-weight:700;">attivo</span>':''}
+    const shortName = f.name.length > 20 ? f.name.substring(0,18)+'…' : f.name;
+    return `<div class="bk-info" style="opacity:${f.active?1:0.55};border:1.5px solid ${f.active?'var(--accent)':'var(--border)'};border-radius:8px;margin-bottom:4px;padding:6px 8px;gap:6px;">
+      <div class="bk-label" style="cursor:pointer;" onclick="setActiveFile(${idx})">${ic}</div>
+      <div class="bk-name" style="font-size:12px;flex:1;cursor:pointer;" onclick="setActiveFile(${idx})" title="${f.name}">${shortName}</div>
+      ${f.active?'<span style="font-size:10px;color:var(--accent);font-weight:700;margin-right:4px;">attivo</span>':''}
+      <span onclick="removeFile(${idx})" title="Rimuovi" style="cursor:pointer;color:var(--text-dim);font-size:14px;line-height:1;padding:2px 4px;border-radius:4px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-dim)'">✕</span>
     </div>`;
   };
   const html = subjectFiles.map((f,i)=>makeItem(f,i)).join('');
   const el = document.getElementById('fileList');
   const mel = document.getElementById('mobFileList');
   if(el) el.innerHTML = html;
-  if(mel) mel.innerHTML = html.replace(/onclick="setActiveFile\(/g, 'onclick="setActiveFile(');
+  if(mel) mel.innerHTML = html;
   // Mostra/nascondi sezione
   const show = subjectFiles.length > 0;
   document.getElementById('bkSection').style.display = show ? 'block' : 'none';
   const mob = document.getElementById('mobBkSection');
   if(mob) mob.style.display = show ? 'block' : 'none';
+}
+
+async function removeFile(idx) {
+  const f = subjectFiles[idx];
+  if(!f) return;
+  if(!confirm(`Rimuovere "${f.name}" dai materiali?`)) return;
+  subjectFiles.splice(idx, 1);
+  // Se era attivo, attiva il primo rimasto (se esiste)
+  if(f.active && subjectFiles.length > 0) {
+    subjectFiles[0].active = true;
+    const newActive = subjectFiles[0];
+    if(currentSubject) {
+      currentSubject.book_name = newActive.name;
+      currentSubject.bookChunks = chunkText(newActive.text, 1200, 150);
+    }
+  } else if(subjectFiles.length === 0 && currentSubject) {
+    currentSubject.book_name = null;
+    currentSubject.bookChunks = [];
+  }
+  // Aggiorna Supabase
+  if(currentSubject?.id) {
+    const first = subjectFiles[0] || null;
+    const extras = subjectFiles.slice(1).map(f=>({name:f.name, text:f.text}));
+    await sb.from('subjects').update({
+      book_name: first?.name || null,
+      book_text: first?.text || null,
+      extra_files: extras.length ? extras : null
+    }).eq('id', currentSubject.id);
+    if(currentSubject) {
+      currentSubject.book_name = first?.name || null;
+      currentSubject.extra_files = extras.length ? extras : null;
+    }
+  }
+  renderFileLists();
 }
 
 function setActiveFile(idx) {
