@@ -151,25 +151,27 @@
       <p style="text-align:center;font-size:12px;color:var(--text-dim);margin-top:10px;cursor:pointer;" onclick="goS4()">Salta questo step →</p>
     </div>
 
-    <!-- STEP 4: libro -->
+    <!-- STEP 4: materiali -->
     <div id="s4" class="hidden">
       <div class="ob-ico">📄</div>
-      <div class="ob-title">Carica il libro</div>
-      <div class="ob-sub">Il testo viene salvato nel tuo account e disponibile su tutti i dispositivi.</div>
+      <div class="ob-title">Carica i materiali</div>
+      <div class="ob-sub">Puoi aggiungere più file: manuale, slide, dispense. Il testo viene salvato nel tuo account.</div>
       <div class="up-prog" id="upProg">
         <div class="up-ph"><span class="up-fn" id="upFn"></span><span class="up-pct" id="upPct">0%</span></div>
         <div class="up-bg"><div class="up-fill" id="upFill"></div></div>
       </div>
       <div class="up-ok" id="upOk">✅ <span id="upOkTxt">Caricato!</span></div>
+      <!-- Lista file aggiunti nell'onboarding -->
+      <div id="ob-file-list" style="margin-bottom:12px;"></div>
       <div class="up-zone" id="upZone">
-        <input type="file" id="fileInput" accept=".pdf" onchange="handleFile(this)">
+        <input type="file" id="fileInput" accept=".pdf,.pptx,.docx" onchange="handleFile(this)">
         <div style="font-size:40px;margin-bottom:12px;">📂</div>
-        <div style="font-weight:700;margin-bottom:6px;">Clicca o trascina il PDF</div>
-        <div style="font-size:13px;color:var(--text-dim);">Fino a 50MB · PDF con testo selezionabile</div>
+        <div style="font-weight:700;margin-bottom:6px;">Clicca o trascina il file</div>
+        <div style="font-size:13px;color:var(--text-dim);">PDF · PPTX · DOCX · fino a 50MB</div>
         <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">PDF scansionato? <a href="https://www.ilovepdf.com/ocr-pdf" target="_blank" rel="noopener" style="color:var(--accent2);text-decoration:underline;">Convertilo prima →</a></div>
       </div>
       <div style="text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:20px;">oppure</div>
-      <button class="ob-btn" id="btnFine" onclick="finishOnboarding()">🚀 Inizia senza libro</button>
+      <button class="ob-btn" id="btnFine" onclick="finishOnboarding()">🚀 Inizia senza materiali</button>
     </div>
   </div>
 </div>
@@ -252,10 +254,11 @@
     </div>
   </div>
 
-  <!-- Libro caricato -->
+  <!-- Materiali caricati -->
   <div id="mobBkSection" style="display:none;margin-bottom:16px;">
-    <div class="sb-title">Libro caricato</div>
-    <div class="bk-info"><div class="bk-label">📄</div><div class="bk-name" id="mobBkName">—</div></div>
+    <div class="sb-title">Materiali</div>
+    <div id="mobFileList"></div>
+    <button class="tbtn" onclick="openAddFilePanel();closeDrawer()" style="color:var(--accent);margin-top:4px;">＋ Aggiungi file</button>
   </div>
 
   <!-- Impostazioni accessibilità -->
@@ -306,8 +309,9 @@
       </div>
     </div>
     <div id="bkSection" style="display:none">
-      <div class="sb-title">Libro caricato</div>
-      <div class="bk-info"><div class="bk-label">📄 Testo attivo</div><div class="bk-name" id="bkName">—</div></div>
+      <div class="sb-title">Materiali</div>
+      <div id="fileList"></div>
+      <button class="tbtn" onclick="openAddFilePanel()" style="color:var(--accent);margin-top:4px;">＋ Aggiungi file</button>
     </div>
     <div id="convSection" style="display:none">
       <div class="sb-title">Conversazioni</div>
@@ -484,6 +488,8 @@ function startNewSubject() {
   document.getElementById('upZone').style.display='';
   document.getElementById('btnFine').textContent='🚀 Inizia senza libro';
   pendingBook = null;
+  pendingFiles = [];
+  document.getElementById('ob-file-list').innerHTML='';
   document.getElementById('onboarding').classList.remove('hidden');
 }
 
@@ -514,6 +520,15 @@ async function loadSubject(subject) {
   }
   if(subject.book_text) currentSubject.bookChunks = chunkText(subject.book_text,1200,150);
   else currentSubject.bookChunks = [];
+  // Popola subjectFiles con tutti i file della materia
+  subjectFiles = [];
+  if(subject.book_name && subject.book_text) {
+    subjectFiles.push({name:subject.book_name, text:subject.book_text, active:true});
+  }
+  if(subject.extra_files && Array.isArray(subject.extra_files)) {
+    subject.extra_files.forEach(f=>subjectFiles.push({name:f.name, text:f.text, active:false}));
+  }
+  renderFileLists();
   resetChatUI();
   updateMobDrawer();
   await loadConversations();
@@ -610,6 +625,10 @@ async function finishOnboarding() {
   // Tronca book_text per evitare payload troppo grandi su Supabase (max 500k char ≈ 350 pagine)
   const MAX_BOOK_CHARS = 500000;
   const bookText = pendingBook?.text ? pendingBook.text.slice(0, MAX_BOOK_CHARS) : null;
+  // File aggiuntivi (extra_files): salva tutti tranne il primo (book_name/book_text)
+  const extraFiles = (pendingFiles.length > 1)
+    ? pendingFiles.slice(1).map(f=>({name:f.name, text:f.text.slice(0,MAX_BOOK_CHARS)}))
+    : null;
 
   // Insert con timeout di 15 secondi per evitare il bottone bloccato su "Salvataggio..."
   let subj, error;
@@ -617,7 +636,8 @@ async function finishOnboarding() {
     const insertPromise = sb.from('subjects').insert({
       user_id:currentUser.id, materia:sel.materiaVal,
       stile:sel.stile, esame:sel.esame,
-      book_name:pendingBook?.name||null, book_text:bookText
+      book_name:pendingBook?.name||null, book_text:bookText,
+      extra_files: extraFiles
     }).select().single();
 
     const timeoutPromise = new Promise((_, reject) =>
@@ -652,9 +672,141 @@ function hlErr(id) {
   setTimeout(()=>el.style.borderColor='',2000);
 }
 
-/* ── UPLOAD PDF ── */
+/* ════ MULTI-FILE — PDF / PPTX / DOCX ════ */
+
+// Stato locale: array di {name, text, active}
+// Il file "active" è quello usato per i chunks nel RAG
+let subjectFiles = []; // caricati da DB o aggiunti in sessione
+
+// ── Icona per tipo file ──
+function fileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  return ext === 'pdf' ? '📄' : ext === 'pptx' ? '📊' : ext === 'docx' ? '📝' : '📎';
+}
+
+// ── Render lista file sidebar + drawer ──
+function renderFileLists() {
+  const makeItem = (f, idx) => {
+    const ic = fileIcon(f.name);
+    const shortName = f.name.length > 22 ? f.name.substring(0,20)+'…' : f.name;
+    return `<div class="bk-info" style="cursor:pointer;opacity:${f.active?1:0.55};border:1.5px solid ${f.active?'var(--accent)':'var(--border)'};border-radius:8px;margin-bottom:4px;padding:6px 8px;gap:6px;" onclick="setActiveFile(${idx})" title="${f.name}">
+      <div class="bk-label">${ic}</div>
+      <div class="bk-name" style="font-size:12px;flex:1;">${shortName}</div>
+      ${f.active?'<span style="font-size:10px;color:var(--accent);font-weight:700;">attivo</span>':''}
+    </div>`;
+  };
+  const html = subjectFiles.map((f,i)=>makeItem(f,i)).join('');
+  const el = document.getElementById('fileList');
+  const mel = document.getElementById('mobFileList');
+  if(el) el.innerHTML = html;
+  if(mel) mel.innerHTML = html.replace(/onclick="setActiveFile\(/g, 'onclick="setActiveFile(');
+  // Mostra/nascondi sezione
+  const show = subjectFiles.length > 0;
+  document.getElementById('bkSection').style.display = show ? 'block' : 'none';
+  const mob = document.getElementById('mobBkSection');
+  if(mob) mob.style.display = show ? 'block' : 'none';
+}
+
+function setActiveFile(idx) {
+  subjectFiles.forEach((f,i) => f.active = (i===idx));
+  // Aggiorna chunks RAG con il file attivo
+  const active = subjectFiles.find(f=>f.active);
+  if(currentSubject) {
+    currentSubject.book_name = active?.name || null;
+    currentSubject.bookChunks = active ? chunkText(active.text,1200,150) : [];
+  }
+  renderFileLists();
+}
+
+// ── Pannello "aggiungi file" (modale leggero) ──
+function openAddFilePanel() {
+  document.getElementById('addFileModal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'addFileModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:400px;width:100%;position:relative;">
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;margin-bottom:8px;">＋ Aggiungi materiale</div>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px;">PDF, presentazioni PPTX o dispense DOCX</p>
+      <div class="up-zone" id="addUpZone" style="margin-bottom:16px;">
+        <input type="file" id="addFileInput" accept=".pdf,.pptx,.docx" onchange="handleAddFile(this)">
+        <div style="font-size:32px;margin-bottom:8px;">📂</div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Clicca o trascina</div>
+        <div style="font-size:12px;color:var(--text-dim);">PDF · PPTX · DOCX</div>
+      </div>
+      <div id="addUpProg" style="display:none;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span id="addUpFn"></span><span id="addUpPct">0%</span>
+        </div>
+        <div class="up-bg"><div class="up-fill" id="addUpFill"></div></div>
+      </div>
+      <div id="addUpOk" style="display:none;color:var(--accent);font-weight:700;margin-bottom:12px;"></div>
+      <div id="addScanWarn" style="display:none;padding:12px;background:rgba(255,180,0,0.1);border:1.5px solid rgba(255,180,0,0.4);border-radius:10px;font-size:12px;margin-bottom:12px;">
+        ⚠️ PDF non leggibile (scansione). <a href="https://www.ilovepdf.com/ocr-pdf" target="_blank" style="color:var(--accent2);">Convertilo prima →</a>
+      </div>
+      <button onclick="document.getElementById('addFileModal').remove()" style="width:100%;background:none;border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text-dim);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;">Chiudi</button>
+    </div>`;
+  // drag & drop sul modale
+  const zone = modal.querySelector('#addUpZone');
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
+  zone.addEventListener('drop',e=>{
+    e.preventDefault();zone.classList.remove('drag');
+    const f=e.dataTransfer.files[0];
+    if(f){modal.querySelector('#addFileInput').files=e.dataTransfer.files;handleAddFile(modal.querySelector('#addFileInput'));}
+  });
+  document.body.appendChild(modal);
+}
+
+async function handleAddFile(input) {
+  const file = input.files[0]; if(!file) return;
+  const modal = document.getElementById('addFileModal');
+  modal.querySelector('#addUpZone').style.display='none';
+  modal.querySelector('#addScanWarn').style.display='none';
+  const prog = modal.querySelector('#addUpProg');
+  prog.style.display='block';
+  modal.querySelector('#addUpFn').textContent = file.name;
+  const fill = modal.querySelector('#addUpFill');
+  const pctEl = modal.querySelector('#addUpPct');
+  let pct=0;
+  const iv = setInterval(()=>{pct+=Math.random()*12;if(pct>=90){pct=90;clearInterval(iv);}fill.style.width=pct+'%';pctEl.textContent=Math.round(pct)+'%';},150);
+  const text = await readAnyFile(file);
+  clearInterval(iv); fill.style.width='100%'; pctEl.textContent='100%';
+  prog.style.display='none';
+  if(!text || text.replace(/\s+/g,' ').trim().length < 200) {
+    modal.querySelector('#addScanWarn').style.display='block';
+    modal.querySelector('#addUpZone').style.display='';
+    input.value='';
+    return;
+  }
+  // Aggiungi alla lista, imposta come attivo
+  subjectFiles.push({name:file.name, text, active:false});
+  setActiveFile(subjectFiles.length-1);
+  // Salva su Supabase (aggiunge al soggetto corrente)
+  if(currentSubject?.id) {
+    const MAX = 500000;
+    const existing = currentSubject.extra_files || [];
+    existing.push({name:file.name, text:text.slice(0,MAX)});
+    sb.from('subjects').update({extra_files:existing}).eq('id',currentSubject.id).then(()=>{});
+    currentSubject.extra_files = existing;
+  }
+  const ok = modal.querySelector('#addUpOk');
+  ok.textContent = `✅ "${file.name}" aggiunto!`;
+  ok.style.display='block';
+  setTimeout(()=>{ document.getElementById('addFileModal')?.remove(); },1200);
+}
+
+// ── Lettura file per tipo ──
+async function readAnyFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'pdf')  return readPDF(file);
+  if(ext === 'pptx') return readPPTX(file);
+  if(ext === 'docx') return readDOCX(file);
+  return '';
+}
+
+// ── Warn scansione + handleFile onboarding ──
 function showScanWarning() {
-  // Rimuovi avviso precedente se esiste
   document.getElementById('scanWarning')?.remove();
   const warn = document.createElement('div');
   warn.id = 'scanWarning';
@@ -669,14 +821,12 @@ function showScanWarning() {
       </a>
       <div style="font-size:12px;color:var(--text-dim);">Carica il PDF su ilovepdf → OCR PDF → scarica → ricarica qui.</div>
     </div>`;
-  // Inserisce dopo upZone o upOk
   const ref = document.getElementById('upOk');
   ref.parentNode.insertBefore(warn, ref.nextSibling);
 }
 
 function handleFile(input) {
   const file = input.files[0]; if(!file) return;
-  // Rimuovi eventuale avviso precedente
   document.getElementById('scanWarning')?.remove();
   document.getElementById('upFn').textContent = file.name;
   document.getElementById('upProg').classList.add('v');
@@ -687,14 +837,12 @@ function handleFile(input) {
     pct+=Math.random()*12; if(pct>=90){pct=90;clearInterval(iv);}
     fill.style.width=pct+'%'; pctEl.textContent=Math.round(pct)+'%';
   },150);
-  readPDF(file).then(text=>{
+  readAnyFile(file).then(text=>{
     clearInterval(iv); fill.style.width='100%'; pctEl.textContent='100%';
     setTimeout(()=>{
       document.getElementById('upProg').classList.remove('v');
-      // Controlla se il testo estratto è troppo scarso (probabile scansione)
       const cleanText = text.replace(/\s+/g,' ').trim();
       if(cleanText.length < 200) {
-        // Scansione rilevata: mostra avviso, ripristina zona upload
         document.getElementById('upOk').classList.remove('v');
         document.getElementById('upZone').style.display='';
         document.getElementById('fileInput').value='';
@@ -702,13 +850,47 @@ function handleFile(input) {
         return;
       }
       document.getElementById('upOk').classList.add('v');
-      document.getElementById('upOkTxt').textContent=`"${file.name}" caricato!`;
+      document.getElementById('upOkTxt').textContent=`"${file.name}" aggiunto!`;
+      // Aggiunge alla lista onboarding
+      const existing = pendingBook ? [pendingBook] : [];
+      // Sostituisce se stesso già presente
+      const filtered = existing.filter(f=>f.name!==file.name);
+      filtered.push({name:file.name, text});
+      pendingBook = filtered[filtered.length-1]; // compatibilità legacy
+      pendingFiles = filtered;
+      // Mostra lista file onboarding
+      renderObFileList();
       document.getElementById('btnFine').textContent='🚀 Inizia a studiare!';
-      pendingBook={name:file.name, text};
     },300);
   });
 }
 
+let pendingFiles = []; // file accumulati nell'onboarding
+
+function renderObFileList() {
+  const el = document.getElementById('ob-file-list');
+  if(!el) return;
+  if(!pendingFiles.length) { el.innerHTML=''; return; }
+  el.innerHTML = pendingFiles.map((f,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;font-size:13px;">
+      <span>${fileIcon(f.name)}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</span>
+      <span onclick="removePendingFile(${i})" style="cursor:pointer;color:var(--text-dim);font-size:16px;line-height:1;">✕</span>
+    </div>`).join('');
+  // Rimostra zona upload per aggiungere altri
+  document.getElementById('upZone').style.display='';
+  document.getElementById('upOk').classList.remove('v');
+  document.getElementById('upFn').textContent='';
+}
+
+function removePendingFile(idx) {
+  pendingFiles.splice(idx,1);
+  pendingBook = pendingFiles.length ? pendingFiles[pendingFiles.length-1] : null;
+  if(!pendingFiles.length) document.getElementById('btnFine').textContent='🚀 Inizia senza materiali';
+  renderObFileList();
+}
+
+// ── PDF reader ──
 async function readPDF(file) {
   return new Promise(resolve=>{
     if(window.pdfjsLib) { extractPDF(file, resolve); return; }
@@ -729,13 +911,73 @@ async function extractPDF(file, resolve) {
   resolve(txt);
 }
 
+// ── PPTX reader (JSZip + parse XML slide) ──
+async function readPPTX(file) {
+  return new Promise(resolve=>{
+    if(window.JSZip) { extractPPTX(file, resolve); return; }
+    const sc=document.createElement('script');
+    sc.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    sc.onload=()=>extractPPTX(file, resolve);
+    document.head.appendChild(sc);
+  });
+}
+async function extractPPTX(file, resolve) {
+  try {
+    const ab = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(ab);
+    const slideFiles = Object.keys(zip.files)
+      .filter(n => /^ppt\/slides\/slide\d+\.xml$/.test(n))
+      .sort((a,b)=>{
+        const na=parseInt(a.match(/\d+/)[0]), nb=parseInt(b.match(/\d+/)[0]);
+        return na-nb;
+      });
+    let txt = '';
+    for(const sf of slideFiles) {
+      const xml = await zip.files[sf].async('string');
+      // Estrae testo dai tag <a:t> (testo delle textbox)
+      const matches = xml.match(/<a:t[^>]*>([^<]+)<\/a:t>/g)||[];
+      const slideText = matches.map(m=>m.replace(/<[^>]+>/g,'')).join(' ');
+      if(slideText.trim()) txt += slideText + '\n';
+    }
+    resolve(txt);
+  } catch(e) {
+    console.error('PPTX parse error:', e);
+    resolve('');
+  }
+}
+
+// ── DOCX reader (JSZip + parse word/document.xml) ──
+async function readDOCX(file) {
+  return new Promise(resolve=>{
+    if(window.JSZip) { extractDOCX(file, resolve); return; }
+    const sc=document.createElement('script');
+    sc.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    sc.onload=()=>extractDOCX(file, resolve);
+    document.head.appendChild(sc);
+  });
+}
+async function extractDOCX(file, resolve) {
+  try {
+    const ab = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(ab);
+    const docXml = await zip.files['word/document.xml'].async('string');
+    // Estrae testo dai tag <w:t>
+    const matches = docXml.match(/<w:t[^>]*>([^<]+)<\/w:t>/g)||[];
+    const txt = matches.map(m=>m.replace(/<[^>]+>/g,'')).join(' ');
+    resolve(txt);
+  } catch(e) {
+    console.error('DOCX parse error:', e);
+    resolve('');
+  }
+}
+
 const upZone=document.getElementById('upZone');
 upZone.addEventListener('dragover',e=>{e.preventDefault();upZone.classList.add('drag');});
 upZone.addEventListener('dragleave',()=>upZone.classList.remove('drag'));
 upZone.addEventListener('drop',e=>{
   e.preventDefault();upZone.classList.remove('drag');
   const f=e.dataTransfer.files[0];
-  if(f?.type==='application/pdf'){document.getElementById('fileInput').files=e.dataTransfer.files;handleFile(document.getElementById('fileInput'));}
+  if(f){document.getElementById('fileInput').files=e.dataTransfer.files;handleFile(document.getElementById('fileInput'));}
 });
 
 /* ════ CONVERSAZIONI ════ */
@@ -974,11 +1216,8 @@ function updateMobDrawer() {
   // Sezione azioni DSA — visibile se profilo attivo
   if(dsaActions) dsaActions.style.display = dsa ? 'block' : 'none';
 
-  // Libro
-  if(bkSec && bk) {
-    bkSec.style.display = 'block';
-    document.getElementById('mobBkName').textContent = bk;
-  } else if(bkSec) { bkSec.style.display = 'none'; }
+  // Materiali — la sezione è gestita da renderFileLists()
+  renderFileLists();
 
   // Stato spaziatura
   if(spacingBtn) {
@@ -1312,7 +1551,9 @@ function buildSP() {
     + '- Materia: ' + (materia||'non specificata') + '\n'
     + '- Stile preferito: ' + (stile||'adattivo') + '\n'
     + '- Esame: ' + (esame||'non specificato');
-  if(book_name)  profilo += '\n- Libro: "' + book_name + '"';
+  if(book_name)  profilo += '\n- Materiale attivo: "' + book_name + '"';
+  const allFiles = subjectFiles.map(f=>f.name).join(', ');
+  if(subjectFiles.length > 1) profilo += '\n- Tutti i materiali: ' + allFiles;
   if(dsa)        profilo += '\n- Profilo DSA: ' + dsa;
   if(strumenti)  profilo += '\n- Strumenti compensativi: ' + strumenti;
 
@@ -1335,7 +1576,7 @@ function buildSP() {
   sp += '- Grassetto per termini chiave, corsivo per definizioni\n';
   sp += '- Termina con UNA domanda di controllo o invito al prossimo passo\n';
   sp += '- Rispondi SEMPRE in italiano, vai dritto al punto, niente preamboli\n';
-  if(book_name) sp += '- Cita il libro quando possibile: "Il manuale spiega che..."\n';
+  if(book_name) sp += '- Cita il materiale quando possibile: "Il materiale spiega che..."\n';
 
   return sp;
 }
