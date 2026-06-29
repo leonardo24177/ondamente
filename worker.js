@@ -78,7 +78,7 @@ async function handleFbPost(request, env) {
   try { body = await request.json(); }
   catch { return new Response('Bad request', { status: 400 }); }
 
-  const { message, secret } = body;
+  const { message, secret, image_prompt } = body;
 
   if (!secret || secret !== env.WORKER_SECRET) {
     return new Response('Unauthorized', { status: 401 });
@@ -90,13 +90,60 @@ async function handleFbPost(request, env) {
     return new Response('FB token not configured', { status: 500 });
   }
 
+  const token = env.FB_PAGE_ACCESS_TOKEN;
+
+  // Se c'è un prompt immagine, carica la foto e allega al post
+  if (image_prompt) {
+    const encodedPrompt = encodeURIComponent(image_prompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=630&nologo=true`;
+
+    // Step 1: carica foto su Facebook (non pubblicata)
+    const photoRes = await fetch('https://graph.facebook.com/v20.0/me/photos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: imageUrl, published: false, access_token: token }),
+    });
+    const photoData = await photoRes.json();
+
+    if (!photoRes.ok || !photoData.id) {
+      return new Response(JSON.stringify({ error: photoData }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Step 2: pubblica post con foto allegata
+    const postRes = await fetch('https://graph.facebook.com/v20.0/me/feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        attached_media: [{ media_fbid: photoData.id }],
+        access_token: token,
+      }),
+    });
+    const postData = await postRes.json();
+
+    if (!postRes.ok) {
+      return new Response(JSON.stringify({ error: postData }), {
+        status: postRes.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true, post_id: postData.id }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Fallback: post solo testo
   const res = await fetch('https://graph.facebook.com/v20.0/me/feed', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, access_token: env.FB_PAGE_ACCESS_TOKEN }),
+    body: JSON.stringify({ message, access_token: token }),
   });
-
   const data = await res.json();
+
   if (!res.ok) {
     return new Response(JSON.stringify({ error: data }), {
       status: res.status,
