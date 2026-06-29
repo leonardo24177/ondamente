@@ -29,6 +29,10 @@ const PLANS = {
 };
 
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleDailyFbPost(env));
+  },
+
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
     const isAllowed = ALLOWED_ORIGINS.includes(origin) ||
@@ -552,6 +556,71 @@ async function verifyStripeSignature(payload, sigHeader, secret) {
   if (diff > 300) throw new Error('Timestamp too old');
 
   return JSON.parse(payload);
+}
+
+// ════ DAILY FACEBOOK POST (Cron) ══════════════════════════════════
+async function handleDailyFbPost(env) {
+  const today = new Date().toLocaleDateString('it-IT', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    timeZone: 'Europe/Rome',
+  });
+
+  // 1. Genera contenuto con Claude Haiku
+  const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: 'Rispondi SOLO con un oggetto JSON valido, senza markdown, senza spiegazioni.',
+      messages: [{
+        role: 'user',
+        content: `Genera un post Facebook per OndaMente DSA (ondamente.it) — app AI per studenti universitari italiani con DSA (Dislessia, ADHD, Discalculia, BES). Brand voice: empatico, incoraggiante, mai pietistico. 80% contenuto educativo, 20% promozionale. Data: ${today}.
+
+Restituisci SOLO questo JSON:
+{"caption":"testo 150-250 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri 10-15","image_prompt":"short English description for AI image generation, flat design, blue and orange colors, encouraging Italian university student context, no text in image"}`,
+      }],
+    }),
+  });
+
+  if (!claudeRes.ok) return;
+  const claudeData = await claudeRes.json();
+  let text = (claudeData.content?.[0]?.text || '').trim()
+    .replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+
+  let post;
+  try { post = JSON.parse(text); } catch { return; }
+
+  const { caption, hashtag, image_prompt } = post;
+  if (!caption || !image_prompt) return;
+
+  // 2. Carica immagine su Facebook (non pubblicata)
+  const token = env.FB_PAGE_ACCESS_TOKEN;
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1200&height=630&nologo=true`;
+
+  const photoRes = await fetch('https://graph.facebook.com/v20.0/me/photos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: imageUrl, published: false, access_token: token }),
+  });
+  const photoData = await photoRes.json();
+  if (!photoRes.ok || !photoData.id) return;
+
+  // 3. Pubblica post con immagine
+  const message = caption + (hashtag ? '\n\n' + hashtag : '');
+  await fetch('https://graph.facebook.com/v20.0/me/feed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      attached_media: [{ media_fbid: photoData.id }],
+      access_token: token,
+    }),
+  });
 }
 
 // ════ CORS ═════════════════════════════════════════════════════════
