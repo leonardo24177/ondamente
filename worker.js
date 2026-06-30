@@ -107,7 +107,7 @@ async function handleFbPost(request, env) {
   // Se c'è un prompt immagine, carica la foto e allega al post
   if (image_prompt) {
     const encodedPrompt = encodeURIComponent(image_prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=630&nologo=true`;
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=630&nologo=true&model=flux&seed=42`;
 
     // Step 1: carica foto su Facebook (non pubblicata)
     const pageId = env.FB_PAGE_ID;
@@ -591,7 +591,7 @@ async function handleDailyFbPost(env) {
         content: `Genera un post Facebook per OndaMente DSA (ondamente.it) — app AI per studenti universitari italiani con DSA (Dislessia, ADHD, Discalculia, BES). Brand voice: empatico, incoraggiante, mai pietistico. 80% contenuto educativo, 20% promozionale. Data: ${today}.
 
 Restituisci SOLO questo JSON:
-{"caption":"testo 150-250 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri 10-15","image_prompt":"short English description for AI image generation, flat design, blue and orange colors, encouraging Italian university student context, no text in image"}`,
+{"caption":"testo 150-250 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri 10-15","image_prompt":"short English description for AI image generation, flat illustration style, dominant colors #2563EB blue and #F97316 orange on white background, encouraging Italian university student with DSA context, absolutely no text or letters in image"}`,
       }],
     }),
   });
@@ -609,7 +609,7 @@ Restituisci SOLO questo JSON:
 
   // 2. Carica immagine su Facebook (non pubblicata)
   const token = env.FB_PAGE_ACCESS_TOKEN;
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1200&height=630&nologo=true`;
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1200&height=630&nologo=true&model=flux&seed=42`;
 
   const pageId = env.FB_PAGE_ID;
   const photoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
