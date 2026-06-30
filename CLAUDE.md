@@ -42,6 +42,13 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 - **Facebook:** `https://www.facebook.com/profile.php?id=1151803171347006` — icona nel footer di tutte le pagine pubbliche. Quando disponibile, aggiornare con vanity URL.
 - **Instagram:** da creare (handle consigliato: `@ondamente.dsa`) — aggiungere icona footer quando pronto.
 
+## Immagini Facebook (Pollinations.ai)
+- **Modello:** `flux` (migliore aderenza al prompt rispetto al default)
+- **Seed:** `42` (fisso — stile visivo coerente tra i post)
+- **Colori brand nel prompt:** `dominant colors #2563EB blue and #F97316 orange on white background`
+- **URL pattern:** `https://image.pollinations.ai/prompt/{prompt}?width=1200&height=630&nologo=true&model=flux&seed=42`
+- Per variare lo stile cambia il seed; per testare: `curl /api/test-cron`
+
 ## Variabili Cloudflare (Workers → Settings → Variables)
 - `ANTHROPIC_API_KEY`
 - `SUPABASE_URL` + `SUPABASE_SERVICE_KEY`
