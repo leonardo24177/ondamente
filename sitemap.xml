@@ -19,6 +19,12 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://ondamente.it/privacy</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://ondamente.it/guide/studiare-con-dislessia-universita</loc>
     <lastmod>2025-05-19</lastmod>
     <changefreq>monthly</changefreq>
