@@ -20,6 +20,10 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
   -d '{"secret":"ondamente-fb-2026"}'
 ```
 
+## Decisioni di prodotto
+- **Target:** esclusivamente studenti universitari (18-28 anni). Non espandere a liceo/medie — il posizionamento DSA universitario è il vantaggio competitivo principale.
+- **Email pubblica:** `ondamente.it@gmail.com` (footer, privacy policy, link Contatti su tutte le pagine)
+
 ## File principali
 | File | Scopo |
 |---|---|
