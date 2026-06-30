@@ -55,6 +55,14 @@ export default {
       return handleFbPost(request, env);
     }
 
+    // ── ROUTE: Test cron (temporaneo) ───────────────────────────────
+    if (request.method === 'POST' && url.pathname === '/api/test-cron') {
+      const body = await request.json().catch(() => ({}));
+      if (body.secret !== env.WORKER_SECRET) return new Response('Unauthorized', { status: 401 });
+      const result = await handleDailyFbPost(env);
+      return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     if (!isAllowed) return new Response('Forbidden', { status: 403 });
 
     // ── ROUTE: Checkout ──────────────────────────────────────────
@@ -102,7 +110,8 @@ async function handleFbPost(request, env) {
     const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=630&nologo=true`;
 
     // Step 1: carica foto su Facebook (non pubblicata)
-    const photoRes = await fetch('https://graph.facebook.com/v20.0/me/photos', {
+    const pageId = env.FB_PAGE_ID;
+    const photoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: imageUrl, published: false, access_token: token }),
@@ -117,7 +126,7 @@ async function handleFbPost(request, env) {
     }
 
     // Step 2: pubblica post con foto allegata
-    const postRes = await fetch('https://graph.facebook.com/v20.0/me/feed', {
+    const postRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -141,7 +150,7 @@ async function handleFbPost(request, env) {
   }
 
   // Fallback: post solo testo
-  const res = await fetch('https://graph.facebook.com/v20.0/me/feed', {
+  const res = await fetch(`https://graph.facebook.com/v20.0/${env.FB_PAGE_ID}/feed`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, access_token: token }),
@@ -587,32 +596,33 @@ Restituisci SOLO questo JSON:
     }),
   });
 
-  if (!claudeRes.ok) return;
+  if (!claudeRes.ok) return { error: 'claude_failed', status: claudeRes.status };
   const claudeData = await claudeRes.json();
   let text = (claudeData.content?.[0]?.text || '').trim()
     .replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
 
   let post;
-  try { post = JSON.parse(text); } catch { return; }
+  try { post = JSON.parse(text); } catch (e) { return { error: 'json_parse_failed', text }; }
 
   const { caption, hashtag, image_prompt } = post;
-  if (!caption || !image_prompt) return;
+  if (!caption || !image_prompt) return { error: 'missing_fields', post };
 
   // 2. Carica immagine su Facebook (non pubblicata)
   const token = env.FB_PAGE_ACCESS_TOKEN;
   const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1200&height=630&nologo=true`;
 
-  const photoRes = await fetch('https://graph.facebook.com/v20.0/me/photos', {
+  const pageId = env.FB_PAGE_ID;
+  const photoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url: imageUrl, published: false, access_token: token }),
   });
   const photoData = await photoRes.json();
-  if (!photoRes.ok || !photoData.id) return;
+  if (!photoRes.ok || !photoData.id) return { error: 'photo_upload_failed', photoData };
 
   // 3. Pubblica post con immagine
   const message = caption + (hashtag ? '\n\n' + hashtag : '');
-  await fetch('https://graph.facebook.com/v20.0/me/feed', {
+  const postRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -621,6 +631,10 @@ Restituisci SOLO questo JSON:
       access_token: token,
     }),
   });
+  const postData = await postRes.json();
+  if (!postRes.ok) return { error: 'post_failed', postData };
+
+  return { success: true, post_id: postData.id };
 }
 
 // ════ CORS ═════════════════════════════════════════════════════════
