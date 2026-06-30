@@ -10,3 +10,13 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Backup e cartelle temporanee
+last/
+21-05/
+css_added/
+*.zip
+fb/
+
+# Credenziali sensibili
+stripe_backup_code.txt

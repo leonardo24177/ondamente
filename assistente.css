@@ -342,8 +342,8 @@
     .chat-area{ padding-bottom:0; }
     .messages{
       padding:14px 14px 10px;
-      /* Fallback minimo — viene sovrascritto dinamicamente da updateMessagesPadding() */
-      padding-bottom:160px;
+      /* bottom-nav(58) + input-area(~100) + safe area + extra = 220px minimo */
+      padding-bottom:220px;
       overflow-y:auto;
     }
 
@@ -364,7 +364,7 @@
     /* ── INPUT AREA ── */
     .input-area{
       position:fixed; bottom:58px; left:0; right:0; z-index:30;
-      padding:8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+      padding:8px 12px 10px;
       background:var(--surface);
       border-top:1px solid var(--border);
       box-shadow:0 -4px 20px rgba(0,0,0,0.3);

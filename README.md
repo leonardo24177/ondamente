@@ -9,23 +9,36 @@
 
 ```
 ondamente/
-├── index.html              ← Landing page
-├── assistente.html         ← App assistente
-├── supabase/
-│   └── schema.sql          ← Schema database (eseguire su Supabase)
-├── cloudflare/
-│   └── worker.js           ← Worker proxy API Anthropic
+├── index.html                          ← Landing page principale
+├── dsa.html                            ← Landing page DSA (/dsa)
+├── assistente.html                     ← App assistente AI
+├── ondamente-dsa-landing.html          ← Landing page alternativa
+├── ondamente-admin.html                ← Pannello admin
+├── ondamente-admin1.html               ← Pannello admin (v2)
+├── style.css                           ← CSS landing pages
+├── assistente.css                      ← CSS app assistente
+├── guide/                              ← Pagine SEO cluster
+│   ├── studiare-con-dislessia-universita.html
+│   ├── adhd-universita-strategie.html
+│   ├── discalculia-esami-universitari.html
+│   ├── comorbilita-dsa-universita.html
+│   └── strumenti-compensativi-dsa-legge-170.html
+├── schema.sql                          ← Schema database (eseguire su Supabase)
+├── worker.js                           ← Worker proxy API Anthropic + Stripe
+├── sitemap.xml
+├── robots.txt
+├── CNAME                               ← ondamente.it
 └── README.md
 ```
 
 ---
 
-## Setup completo (15 minuti)
+## Setup completo
 
 ### 1. Supabase — database e autenticazione
 
 1. Crea un account su [supabase.com](https://supabase.com) e crea un nuovo progetto
-2. Vai su **SQL Editor → New query**, incolla il contenuto di `supabase/schema.sql` e clicca **Run**
+2. Vai su **SQL Editor → New query**, incolla il contenuto di `schema.sql` e clicca **Run**
 3. Vai su **Settings → API** e copia:
    - **Project URL** → `https://xxxx.supabase.co`
    - **anon public key** → `eyJh...`
@@ -35,45 +48,64 @@ ondamente/
    const SB_KEY = 'INSERISCI_LA_TUA_SUPABASE_ANON_KEY';
    ```
 
-> ℹ️ La **anon key** è pubblica per design — è sicura nel frontend perché  
+> La **anon key** è pubblica per design — è sicura nel frontend perché  
 > le Row Level Security policies garantiscono che ogni utente veda solo i propri dati.
 
 ---
 
-### 2. Cloudflare Worker — proxy API Anthropic
+### 2. Cloudflare Worker — proxy API
 
-La chiave Anthropic non va **mai** nel frontend. Il Worker fa da proxy sicuro.
+Il Worker gestisce tre responsabilità:
+
+- **Proxy Anthropic** — inoltra le richieste di chat nascondendo la chiave API
+- **Checkout Stripe** — crea sessioni di pagamento
+- **Webhook Stripe** — attiva i piani dopo il pagamento
 
 1. Vai su [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages → Create Worker**
-2. Incolla il contenuto di `cloudflare/worker.js`
-3. Clicca **Save and Deploy**
-4. Vai su **Settings → Variables and Secrets** → aggiungi:
-   - Nome: `ANTHROPIC_API_KEY`
-   - Valore: la tua chiave `sk-ant-...` (da [console.anthropic.com](https://console.anthropic.com))
-5. Copia il Worker URL (es. `https://ondamente-worker.tuonome.workers.dev`)
-6. In `assistente.html` sostituisci:
+2. Incolla il contenuto di `worker.js`
+3. Vai su **Settings → Variables and Secrets** → aggiungi:
+
+   | Nome | Valore |
+   |---|---|
+   | `ANTHROPIC_API_KEY` | `sk-ant-...` da [console.anthropic.com](https://console.anthropic.com) |
+   | `SUPABASE_URL` | URL del progetto Supabase |
+   | `SUPABASE_SERVICE_KEY` | Service role key di Supabase |
+   | `STRIPE_SECRET_KEY` | `sk_live_...` da Stripe dashboard |
+   | `STRIPE_WEBHOOK_SECRET` | `whsec_...` dopo aver configurato il webhook |
+   | `FB_PAGE_ACCESS_TOKEN` | Token pagina Facebook (per pubblicazione automatica) |
+
+4. Copia il Worker URL e in `assistente.html` sostituisci:
    ```js
    const API_ENDPOINT = 'INSERISCI_IL_TUO_WORKER_URL/api/chat';
    ```
-7. Aggiungi il tuo dominio a `ALLOWED_ORIGINS` nel worker se necessario
 
 ---
 
-### 3. GitHub Pages — hosting
+### 3. Stripe — pagamenti
 
-1. Crea un repo su GitHub (può essere privato)
-2. Carica tutti i file
-3. Vai su **Settings → Pages → Source → Deploy from branch → main**
-4. Il sito sarà disponibile su `https://tuonome.github.io/ondamente/`
+Piani configurati (price ID live):
 
-> 💡 Per usare il dominio `ondamente.it`, aggiungi un file `CNAME` con il contenuto  
-> `ondamente.it` e configura i DNS del tuo registrar puntando a GitHub Pages.
+| Piano | Materie | Prezzo | Scadenza |
+|---|---|---|---|
+| Single | 1 | €7,99 | nessuna |
+| Triple | 3 | €19,99 | 31 luglio anno accademico |
+| Quintuple | 5 | €29,99 | 31 luglio anno accademico |
+
+Configura il webhook in Stripe Dashboard → **Developers → Webhooks** puntando a:
+```
+https://TUO_WORKER.workers.dev/api/webhook
+```
+Evento da ascoltare: `checkout.session.completed`
 
 ---
 
-### 4. DNS per dominio custom (ondamente.it)
+### 4. GitHub Pages — hosting
 
-Nel pannello del tuo registrar (es. OVH, Aruba, Cloudflare):
+1. Carica tutti i file su GitHub
+2. Vai su **Settings → Pages → Source → Deploy from branch → main**
+3. Il sito sarà disponibile su `https://tuonome.github.io/ondamente/`
+
+Per il dominio `ondamente.it`, il file `CNAME` è già configurato. Imposta i DNS:
 
 ```
 A     @     185.199.108.153
@@ -89,29 +121,39 @@ CNAME www   tuonome.github.io
 
 | Tabella | Descrizione |
 |---|---|
-| `profiles` | Profilo utente (università, corso, anno) |
-| `subjects` | Materie/esami con libro PDF e profilo DSA |
+| `profiles` | Profilo utente (università, corso, anno, piano, materie_remaining) |
+| `subjects` | Materie con testo PDF, profilo DSA, stato pagamento e scadenza |
 | `conversations` | Sessioni di chat per materia |
 | `messages` | Messaggi singoli (user / assistant) |
 
-Tutte le tabelle hanno **Row Level Security** attiva: ogni utente accede solo ai propri dati.
+Tutte le tabelle hanno **Row Level Security** attiva.
 
 ---
 
-## Variabili da configurare
+## Routing AI (worker.js)
 
-| File | Variabile | Dove trovarla |
-|---|---|---|
-| `assistente.html` | `SB_URL` | Supabase → Settings → API → Project URL |
-| `assistente.html` | `SB_KEY` | Supabase → Settings → API → anon public key |
-| `assistente.html` | `API_ENDPOINT` | URL del tuo Cloudflare Worker + `/api/chat` |
-| `cloudflare/worker.js` | `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
+Il Worker seleziona automaticamente il modello in base alla complessità:
+
+| Modello | Quando |
+|---|---|
+| `claude-sonnet-4-6` | Domande complesse (>20 parole), modalità scaffolding/mappa |
+| `claude-haiku-4-5-20251001` | Quiz, ripasso, audio, domande semplici |
+
+---
+
+## Agente Facebook (Claude Code Routines)
+
+Un agente cloud gira ogni **lunedì alle 9:00** (ora Roma) e genera 5 post settimanali per la pagina Facebook di OndaMente, salvandoli su Google Drive nel documento **"OndaMente - Piano Editoriale Facebook"**.
+
+Gestisci la routine su: https://claude.ai/code/routines/trig_01LR2ZhRkWw3FVDsWFQioqBF
+
+Per abilitare la pubblicazione automatica su Facebook, configura il secret `FB_PAGE_ACCESS_TOKEN` nel Cloudflare Worker (vedi Step 2).
 
 ---
 
 ## Sviluppo locale
 
-Apri semplicemente `index.html` in un browser, oppure usa Live Server (VS Code).  
+Apri `index.html` in un browser o usa Live Server (VS Code).  
 Assicurati che `http://127.0.0.1:5500` sia in `ALLOWED_ORIGINS` nel worker.
 
 ---

@@ -316,6 +316,67 @@ tbody td { padding: 11px 12px 11px 0; font-size: 13px; vertical-align: middle; }
 }
 .page-btn.active, .page-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
 .page-info { font-size: 11px; color: var(--muted2); font-family: 'DM Mono', monospace; }
+
+/* ── MODAL EDIT UTENTE ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(12,11,20,0.6); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--surface); border-radius: 16px;
+  width: 100%; max-width: 460px; padding: 28px 32px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.15);
+  transform: translateY(12px); transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
+.modal-email { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 3px; }
+.modal-close { background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: background 0.15s; }
+.modal-close:hover { background: var(--bg); }
+.modal-field { margin-bottom: 16px; }
+.modal-field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.modal-field select, .modal-field input {
+  width: 100%; padding: 10px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg);
+  font-size: 13px; color: var(--ink); font-family: 'DM Sans', sans-serif;
+  outline: none; transition: border-color 0.15s;
+}
+.modal-field select:focus, .modal-field input:focus { border-color: var(--green); }
+.modal-toggle { display: flex; align-items: center; gap: 10px; }
+.toggle-switch { position: relative; width: 40px; height: 22px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; cursor: pointer;
+  background: var(--border); border-radius: 100px; transition: 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 16px; height: 16px; left: 3px; bottom: 3px;
+  background: #fff; border-radius: 50%; transition: 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--green); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+.modal-footer { display: flex; gap: 10px; margin-top: 22px; }
+.modal-btn {
+  flex: 1; padding: 11px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+}
+.modal-btn.primary { background: var(--green); color: #fff; }
+.modal-btn.primary:hover { background: var(--green-d); }
+.modal-btn.secondary { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.modal-btn.secondary:hover { color: var(--ink); }
+.modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.edit-btn {
+  padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface); font-size: 11px; font-weight: 600;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.edit-btn:hover { background: var(--green); color: #fff; border-color: var(--green); }
 </style>
 </head>
 <body>
@@ -584,6 +645,66 @@ tbody td { padding: 11px 12px 11px 0; font-size: 13px; vertical-align: middle; }
 
 </div><!-- /appRoot -->
 
+<!-- MODAL MODIFICA UTENTE -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this) closeEditModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Modifica utente</div>
+        <div class="modal-email" id="modalEmail">—</div>
+      </div>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+
+    <div class="modal-field">
+      <label>Piano</label>
+      <select id="editPlan">
+        <option value="free">Free</option>
+        <option value="single">Single</option>
+        <option value="triple">Trio</option>
+        <option value="quintuple">Full</option>
+      </select>
+    </div>
+
+    <div class="modal-field">
+      <label>Materie rimanenti</label>
+      <input id="editSubjectsRemaining" type="number" min="0" max="99" placeholder="0">
+    </div>
+
+    <div class="modal-field">
+      <label>Scadenza piano</label>
+      <input id="editPlanExpires" type="date">
+    </div>
+
+    <div class="modal-field">
+      <label>Ruolo admin</label>
+      <div class="modal-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="editIsAdmin">
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-size:13px;color:var(--muted)" id="adminToggleLabel">Utente normale</span>
+      </div>
+    </div>
+
+    <div class="modal-field">
+      <label>Stato account</label>
+      <div class="modal-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="editIsBlocked">
+          <span class="toggle-slider" style=""></span>
+        </label>
+        <span style="font-size:13px;color:var(--muted)" id="blockedToggleLabel">Account attivo</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn secondary" onclick="closeEditModal()">Annulla</button>
+      <button class="modal-btn primary" id="saveEditBtn" onclick="saveUserEdit()">Salva modifiche</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -844,7 +965,7 @@ function renderUtenti() {
 
   if (!filtered.length) { el('users-table').innerHTML = '<div class="empty-state">Nessun utente trovato</div>'; return; }
   el('users-table').innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Email</th><th>Piano</th><th>Materie rimanenti</th><th>DSA</th><th>Anno</th><th>Scadenza piano</th><th>Data registrazione</th></tr></thead>
+    <thead><tr><th>Email</th><th>Piano</th><th>Materie rimanenti</th><th>DSA</th><th>Anno</th><th>Scadenza piano</th><th>Data registrazione</th><th></th></tr></thead>
     <tbody>${filtered.map(p => {
       const pc = PLAN_COLORS[p.plan||'free'] || { color:'#9997b0', label:'Free' };
       return `<tr>
@@ -855,6 +976,7 @@ function renderUtenti() {
         <td style="font-size:12px;color:var(--muted)">${p.anno || '—'}</td>
         <td class="td-date">${p.plan_expires_at ? fmtDate(p.plan_expires_at) : '—'}</td>
         <td class="td-date">${fmtDate(p.created_at)}</td>
+        <td><button class="edit-btn" onclick="openEditModal('${p.id}')">✏️ Modifica</button></td>
       </tr>`;
     }).join('')}</tbody>
   </table></div>`;
@@ -1034,6 +1156,67 @@ function renderMessaggi() {
     : '<div class="empty-state">Nessun dato messaggi</div>';
 }
 
+// ── MODAL MODIFICA UTENTE ──
+let editingUserId = null;
+
+function openEditModal(userId) {
+  const p = allProfiles.find(p => p.id === userId);
+  if (!p) return;
+  editingUserId = userId;
+
+  el('modalEmail').textContent = p.email || p.id;
+  el('editPlan').value = p.plan || 'free';
+  el('editSubjectsRemaining').value = p.subjects_remaining ?? 0;
+  el('editPlanExpires').value = p.plan_expires_at ? p.plan_expires_at.slice(0,10) : '';
+  el('editIsAdmin').checked = !!p.is_admin;
+  el('editIsBlocked').checked = !!p.is_blocked;
+  updateToggleLabels();
+
+  el('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  el('editModal').classList.remove('open');
+  editingUserId = null;
+}
+
+function updateToggleLabels() {
+  el('adminToggleLabel').textContent = el('editIsAdmin').checked ? '⭐ Amministratore' : 'Utente normale';
+  el('blockedToggleLabel').textContent = el('editIsBlocked').checked ? '🔴 Account bloccato' : '🟢 Account attivo';
+}
+el('editIsAdmin').addEventListener('change', updateToggleLabels);
+el('editIsBlocked').addEventListener('change', updateToggleLabels);
+
+async function saveUserEdit() {
+  if (!editingUserId) return;
+  const btn = el('saveEditBtn');
+  btn.disabled = true; btn.textContent = '⏳ Salvataggio...';
+
+  const updates = {
+    plan: el('editPlan').value,
+    subjects_remaining: parseInt(el('editSubjectsRemaining').value) || 0,
+    plan_expires_at: el('editPlanExpires').value || null,
+    is_admin: el('editIsAdmin').checked,
+    is_blocked: el('editIsBlocked').checked,
+  };
+
+  const { error } = await sb.from('profiles').update(updates).eq('id', editingUserId);
+
+  if (error) {
+    toast('❌ Errore: ' + error.message);
+  } else {
+    // Aggiorna il profilo locale
+    const idx = allProfiles.findIndex(p => p.id === editingUserId);
+    if (idx !== -1) allProfiles[idx] = { ...allProfiles[idx], ...updates };
+    toast('✅ Utente aggiornato');
+    closeEditModal();
+    renderUtenti();
+    renderOverviewKPIs();
+  }
+
+  btn.disabled = false; btn.textContent = 'Salva modifiche';
+}
+
 // ── LOGIN ADMIN ──
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
@@ -1055,7 +1238,12 @@ async function doLogin() {
   }
 
   // Verifica flag is_admin nella tabella profiles
-  const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', data.user.id).single();
+  // Usiamo maybeSingle per evitare errori se il profilo non esiste
+  const { data: profile, error: profileError } = await sb
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', data.user.id)
+    .maybeSingle();
 
   if (!profile?.is_admin) {
     await sb.auth.signOut();
