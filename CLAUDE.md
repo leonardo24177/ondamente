@@ -30,10 +30,17 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 | `index.html` | Landing principale |
 | `ondamente-dsa-landing.html` | Landing DSA |
 | `assistente.html` | App assistente |
-| `style.css` | CSS condiviso (index + dsa landing) |
+| `privacy.html` | Privacy Policy GDPR |
+| `cookie-banner.js` | Banner cookie (caricato da tutte le pagine pubbliche) |
+| `style.css` | CSS condiviso (index + dsa landing + privacy) |
 | `assistente.css` | CSS app |
 | `worker.js` | Cloudflare Worker |
 | `schema.sql` | Schema Supabase |
+| `ondamente-admin.html` | Dashboard admin (utenti, KPI, revenue) — richiede login Supabase |
+
+## Social
+- **Facebook:** `https://www.facebook.com/profile.php?id=1151803171347006` — icona nel footer di tutte le pagine pubbliche. Quando disponibile, aggiornare con vanity URL.
+- **Instagram:** da creare (handle consigliato: `@ondamente.dsa`) — aggiungere icona footer quando pronto.
 
 ## Variabili Cloudflare (Workers → Settings → Variables)
 - `ANTHROPIC_API_KEY`
