@@ -311,7 +311,7 @@
   .profiles-sec .sec-sub { color: rgba(255,255,255,0.5); }
 
   .profiles-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 20px; margin-top: 56px;
   }
   .profile-card {
@@ -621,6 +621,7 @@
     .final-sec { padding: 72px 24px; }
     footer { padding: 28px 24px; }
     .story-grid { grid-template-columns: 1fr; }
+    .profiles-grid { grid-template-columns: repeat(2, 1fr); }
     .story-quote { flex-direction: column; gap: 20px; }
     .story-quote-meta { text-align: left; }
     .features-layout { grid-template-columns: 1fr; }
@@ -637,6 +638,7 @@
   @media (max-width: 540px) {
     .steps-grid { grid-template-columns: 1fr; }
     .pricing-grid-4 { grid-template-columns: 1fr; }
+    .profiles-grid { grid-template-columns: 1fr; }
   }
 
   /* ── SCROLL REVEAL ── */
