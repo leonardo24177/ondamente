@@ -53,6 +53,16 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 - `ANTHROPIC_API_KEY`
 - `SUPABASE_URL` + `SUPABASE_SERVICE_KEY`
 - `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`
-- `FB_PAGE_ACCESS_TOKEN` — Page Access Token (da Graph API Explorer → me/accounts)
+- `FB_PAGE_ACCESS_TOKEN` — Page Access Token permanente (vedi sotto)
 - `FB_PAGE_ID` = `1151803171347006`
 - `WORKER_SECRET` = `ondamente-fb-2026`
+
+## Token Facebook — rigenerazione (se scade o viene revocato)
+1. [Graph API Explorer](https://developers.facebook.com/tools/explorer/) → app `ondamente.it` → menu "User or Page" → seleziona la pagina OndaMente DSA con permessi `pages_show_list`, `pages_read_engagement`, `pages_manage_posts` → copia il Page Access Token (breve durata)
+2. Rendilo permanente: `GET /oauth/access_token?grant_type=fb_exchange_token&client_id={APP_ID}&client_secret={APP_SECRET}&fb_exchange_token={TOKEN}` (App ID/Secret in Impostazioni → Di base)
+3. Verifica: `GET /debug_token?input_token={NUOVO_TOKEN}&access_token={APP_ID}|{APP_SECRET}` → deve dare `expires_at: 0` (mai) e type `PAGE`
+4. Aggiorna `FB_PAGE_ACCESS_TOKEN` su Cloudflare → Save and Deploy → testa con `/api/test-cron`
+
+**Note:**
+- L'app Meta deve restare in **Live mode**: in Development mode i post vengono pubblicati ma sono invisibili al pubblico (li vede solo chi ha un ruolo nell'app).
+- Il deploy del worker via GitHub Actions usa il secret `CLOUDFLARE_API_TOKEN` (repo → Settings → Secrets → Actions): se i deploy falliscono con "Authentication error code 10000", rigenerarlo su Cloudflare con il template "Edit Cloudflare Workers".
