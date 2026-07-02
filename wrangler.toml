@@ -3,4 +3,4 @@ main = "worker.js"
 compatibility_date = "2024-11-01"
 
 [triggers]
-crons = []
+crons = ["0 7 * * 1-5"]
