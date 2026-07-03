@@ -634,7 +634,41 @@ Restituisci SOLO questo JSON:
   const postData = await postRes.json();
   if (!postRes.ok) return { error: 'post_failed', postData };
 
-  return { success: true, post_id: postData.id };
+  // 4. Cross-post su Instagram (@ondamente_dsa) — non blocca il post FB se fallisce
+  const igUserId = env.IG_USER_ID || '17841417643234744';
+  let ig = {};
+  try {
+    // Instagram vuole formato quadrato; stesso prompt e seed per coerenza visiva
+    const igImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1080&height=1080&nologo=true&model=flux&seed=42`;
+    const containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: igImageUrl, caption: message, access_token: token }),
+    });
+    const containerData = await containerRes.json();
+    if (!containerRes.ok || !containerData.id) {
+      ig = { ig_error: 'container_failed', ig_detail: containerData };
+    } else {
+      // Il container può impiegare qualche secondo a processare l'immagine
+      let igPostId = null, lastErr = null;
+      for (let i = 0; i < 6; i++) {
+        const pubRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media_publish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creation_id: containerData.id, access_token: token }),
+        });
+        const pubData = await pubRes.json();
+        if (pubRes.ok && pubData.id) { igPostId = pubData.id; break; }
+        lastErr = pubData;
+        await new Promise(r => setTimeout(r, 5000));
+      }
+      ig = igPostId ? { ig_post_id: igPostId } : { ig_error: 'publish_failed', ig_detail: lastErr };
+    }
+  } catch (e) {
+    ig = { ig_error: String(e) };
+  }
+
+  return { success: true, post_id: postData.id, ...ig };
 }
 
 // ════ CORS ═════════════════════════════════════════════════════════
