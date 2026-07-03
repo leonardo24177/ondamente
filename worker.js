@@ -786,9 +786,9 @@ async function handleStoryImage(request, env) {
   const html = `
     <div style="display:flex; flex-direction:column; width:1080px; height:1920px; position:relative;">
       <img src="${bg}" width="1080" height="1920" style="position:absolute; top:0; left:0; object-fit:cover;" />
-      <div style="display:flex; flex-direction:column; margin-top:auto; padding:72px 60px 160px; background:linear-gradient(to bottom, rgba(37,99,235,0), rgba(37,99,235,0.92));">
-        <div style="display:flex; font-size:68px; font-weight:700; color:#FFFFFF; line-height:1.2;">${esc(title)}</div>
-        <div style="display:flex; font-size:42px; font-weight:700; color:#F97316; margin-top:28px;">ondamente.it</div>
+      <div style="display:flex; flex-direction:column; margin-top:auto; padding:200px 60px 160px; background:linear-gradient(to bottom, rgba(30,58,138,0), rgba(30,58,138,0.55) 35%, rgba(30,58,138,0.97));">
+        <div style="display:flex; font-size:68px; font-weight:700; color:#FFFFFF; line-height:1.2; text-shadow: 0 3px 14px rgba(0,0,0,0.45);">${esc(title)}</div>
+        <div style="display:flex; font-size:42px; font-weight:700; color:#F97316; margin-top:28px; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">ondamente.it</div>
       </div>
     </div>`;
 
