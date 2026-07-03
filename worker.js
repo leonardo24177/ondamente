@@ -640,13 +640,32 @@ Restituisci SOLO questo JSON:
   try {
     // Instagram vuole formato quadrato; stesso prompt e seed per coerenza visiva
     const igImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1080&height=1080&nologo=true&model=flux&seed=42`;
-    const containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_url: igImageUrl, caption: message, access_token: token }),
-    });
-    const containerData = await containerRes.json();
-    if (!containerRes.ok || !containerData.id) {
+
+    // Pre-genera l'immagine: Pollinations la crea al primo accesso (anche 30+s)
+    // e il fetcher di Instagram va in timeout se non la trova già in cache
+    let warmed = false;
+    for (let i = 0; i < 3 && !warmed; i++) {
+      try {
+        const warm = await fetch(igImageUrl);
+        if (warm.ok && (warm.headers.get('content-type') || '').startsWith('image/')) {
+          await warm.arrayBuffer();
+          warmed = true;
+        }
+      } catch (e) { /* riprova */ }
+    }
+
+    let containerData = null;
+    for (let i = 0; i < 3; i++) {
+      const containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: igImageUrl, caption: message, access_token: token }),
+      });
+      containerData = await containerRes.json();
+      if (containerRes.ok && containerData.id) break;
+      await new Promise(r => setTimeout(r, 5000));
+    }
+    if (!containerData?.id) {
       ig = { ig_error: 'container_failed', ig_detail: containerData };
     } else {
       // Il container può impiegare qualche secondo a processare l'immagine
