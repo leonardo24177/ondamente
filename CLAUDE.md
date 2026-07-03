@@ -46,6 +46,7 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 - **Modello:** `flux` (migliore aderenza al prompt rispetto al default)
 - **Seed:** `42` (fisso — stile visivo coerente tra i post)
 - **Colori brand nel prompt:** `dominant colors #2563EB blue and #F97316 orange on white background`
+- **Stile (dal 2026-07-03):** editoriale adulto contemporaneo, personaggi 20-26 anni con tratti adulti (mai bambini/teenager), scena variabile (biblioteca, aula, campus, scrivania) — il target è universitario
 - **URL pattern:** `https://image.pollinations.ai/prompt/{prompt}?width=1200&height=630&nologo=true&model=flux&seed=42`
 - Per variare lo stile cambia il seed; per testare: `curl /api/test-cron`
 
