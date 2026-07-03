@@ -591,7 +591,7 @@ async function handleDailyFbPost(env) {
         content: `Genera un post Facebook per OndaMente DSA (ondamente.it) — app AI per studenti universitari italiani con DSA (Dislessia, ADHD, Discalculia, BES). Brand voice: empatico, incoraggiante, mai pietistico. 80% contenuto educativo, 20% promozionale. Data: ${today}.
 
 Restituisci SOLO questo JSON:
-{"caption":"testo 150-250 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri 10-15","image_prompt":"short English description for AI image generation, flat illustration style, dominant colors #2563EB blue and #F97316 orange on white background, encouraging Italian university student with DSA context, absolutely no text or letters in image"}`,
+{"caption":"testo 150-250 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri 10-15","image_prompt":"short English description for AI image generation, contemporary editorial flat illustration for adults, characters are Italian university students age 20-26 with mature adult features (never children or teenagers), vary the scene each day (university library, lecture hall, campus, study desk with laptop and coffee), dominant colors #2563EB blue and #F97316 orange on white background, absolutely no text or letters in image"}`,
       }],
     }),
   });
