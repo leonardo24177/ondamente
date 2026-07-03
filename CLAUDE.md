@@ -47,8 +47,9 @@ Un'unica esecuzione genera testo (Claude Haiku) + immagine (Pollinations) e pubb
 1. **Post Facebook** 1200×630
 2. **Post Instagram** 1080×1080 (stessa creatività)
 3. **Story Instagram** 1080×1920 (`media_type=STORIES`, dura 24h, solo immagine — l'API non supporta testo/link/sticker)
+4. **Story Facebook** 1080×1920 (stessa immagine verticale della story IG; upload foto non pubblicata su `/photos` + `/photo_stories` — serve un upload separato perché Meta non accetta come storia una foto già usata in un post)
 
-Ogni step è indipendente: se IG fallisce il post FB esce comunque (`ig_error`/`ig_story_error` nella risposta). Le immagini vengono pre-scaricate dal worker ("warm-up") perché Pollinations genera al primo accesso e il fetcher di Meta andrebbe in timeout. I post IG non si possono cancellare via API (solo a mano dall'app); quelli FB sì.
+Ogni step è indipendente: se IG fallisce il post FB esce comunque (`ig_error`/`ig_story_error`/`fb_story_error` nella risposta). Le immagini vengono pre-scaricate dal worker ("warm-up") perché Pollinations genera al primo accesso e il fetcher di Meta andrebbe in timeout. I post IG non si possono cancellare via API (solo a mano dall'app); quelli FB sì.
 
 ## Immagini Facebook (Pollinations.ai)
 - **Modello:** `flux` (migliore aderenza al prompt rispetto al default)

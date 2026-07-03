@@ -636,6 +636,8 @@ Restituisci SOLO questo JSON:
 
   // 4. Cross-post su Instagram (@ondamente_dsa) — non blocca il post FB se fallisce
   const igUserId = env.IG_USER_ID || '17841417643234744';
+  // Verticale 1080×1920 condivisa da story IG e story FB
+  const storyImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1080&height=1920&nologo=true&model=flux&seed=42`;
   let ig = {};
   try {
     // Post nel feed: formato quadrato, stesso prompt e seed per coerenza visiva
@@ -644,14 +646,42 @@ Restituisci SOLO questo JSON:
     ig = feed.id ? { ig_post_id: feed.id } : { ig_error: feed.error, ig_detail: feed.detail };
 
     // Story: stessa creatività in verticale 1080×1920 (24h, solo immagine)
-    const storyImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1080&height=1920&nologo=true&model=flux&seed=42`;
     const story = await publishIgMedia(igUserId, token, storyImageUrl, { media_type: 'STORIES' });
     Object.assign(ig, story.id ? { ig_story_id: story.id } : { ig_story_error: story.error, ig_story_detail: story.detail });
   } catch (e) {
     ig = { ig_error: String(e) };
   }
 
-  return { success: true, post_id: postData.id, ...ig };
+  // 5. Story Facebook — non blocca il resto se fallisce. Usa la stessa
+  // immagine verticale della story IG (a questo punto già in cache su
+  // Pollinations). Serve un upload separato: Meta non accetta come storia
+  // una foto già usata in un post pubblicato.
+  let fbStory = {};
+  try {
+    const storyPhotoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: storyImageUrl, published: false, access_token: token }),
+    });
+    const storyPhotoData = await storyPhotoRes.json();
+    if (storyPhotoRes.ok && storyPhotoData.id) {
+      const storyRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photo_stories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo_id: storyPhotoData.id, access_token: token }),
+      });
+      const storyData = await storyRes.json();
+      fbStory = storyRes.ok && storyData.success
+        ? { fb_story_id: storyData.post_id }
+        : { fb_story_error: 'fb_story_failed', fb_story_detail: storyData };
+    } else {
+      fbStory = { fb_story_error: 'fb_story_photo_failed', fb_story_detail: storyPhotoData };
+    }
+  } catch (e) {
+    fbStory = { fb_story_error: String(e) };
+  }
+
+  return { success: true, post_id: postData.id, ...ig, ...fbStory };
 }
 
 // Pubblica un contenuto Instagram (feed o story): pre-genera l'immagine su
