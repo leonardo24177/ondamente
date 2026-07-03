@@ -40,7 +40,7 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 
 ## Social
 - **Facebook:** `https://www.facebook.com/profile.php?id=1151803171347006` — icona nel footer di tutte le pagine pubbliche. Quando disponibile, aggiornare con vanity URL.
-- **Instagram:** da creare (handle consigliato: `@ondamente.dsa`) — aggiungere icona footer quando pronto.
+- **Instagram:** `@ondamente_dsa` (IG User ID: `17841417643234744`) — account Business collegato alla pagina FB, icona nel footer. Il cron quotidiano cross-posta su entrambi (stessa creatività: FB 1200×630, IG 1080×1080). Se IG fallisce il post FB esce comunque (`ig_error` nella risposta).
 
 ## Immagini Facebook (Pollinations.ai)
 - **Modello:** `flux` (migliore aderenza al prompt rispetto al default)
@@ -58,11 +58,12 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 - `WORKER_SECRET` = `ondamente-fb-2026`
 
 ## Token Facebook — rigenerazione (se scade o viene revocato)
-1. [Graph API Explorer](https://developers.facebook.com/tools/explorer/) → app `ondamente.it` → menu "User or Page" → seleziona la pagina OndaMente DSA con permessi `pages_show_list`, `pages_read_engagement`, `pages_manage_posts` → copia il Page Access Token (breve durata)
+1. [Graph API Explorer](https://developers.facebook.com/tools/explorer/) → app `ondamente.it` → menu "User or Page" → seleziona la pagina OndaMente DSA con permessi `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`, `instagram_content_publish` → copia il Page Access Token (breve durata)
 2. Rendilo permanente: `GET /oauth/access_token?grant_type=fb_exchange_token&client_id={APP_ID}&client_secret={APP_SECRET}&fb_exchange_token={TOKEN}` (App ID/Secret in Impostazioni → Di base)
 3. Verifica: `GET /debug_token?input_token={NUOVO_TOKEN}&access_token={APP_ID}|{APP_SECRET}` → deve dare `expires_at: 0` (mai) e type `PAGE`
 4. Aggiorna `FB_PAGE_ACCESS_TOKEN` su Cloudflare → Save and Deploy → testa con `/api/test-cron`
 
 **Note:**
 - L'app Meta deve restare in **Live mode**: in Development mode i post vengono pubblicati ma sono invisibili al pubblico (li vede solo chi ha un ruolo nell'app).
+- Il collegamento Instagram↔pagina va fatto **dal lato pagina FB** (profilo pagina → Impostazioni → Account collegati → Instagram), NON dal Centro account di Instagram: quello è solo condivisione e non abilita l'API.
 - Il deploy del worker via GitHub Actions usa il secret `CLOUDFLARE_API_TOKEN` (repo → Settings → Secrets → Actions): se i deploy falliscono con "Authentication error code 10000", rigenerarlo su Cloudflare con il template "Edit Cloudflare Workers".
