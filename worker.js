@@ -650,7 +650,7 @@ Restituisci SOLO questo JSON:
   // il warm-up però va fatto sull'URL Pollinations (il worker non può fare
   // fetch di se stesso) — sarà satori a scaricare lo sfondo, già in cache.
   const storyTitle = (post.story_title || 'OndaMente DSA').trim();
-  const storyBgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1080&height=1920&nologo=true&model=flux&seed=42`;
+  const storyBgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=720&height=1280&nologo=true&model=flux&seed=42`;
   const storyImageUrl = `${WORKER_URL}/api/story-image?prompt=${encodeURIComponent(image_prompt)}&title=${encodeURIComponent(storyTitle)}&sig=${await storySig(env, image_prompt, storyTitle)}`;
   let ig = {};
   try {
@@ -659,9 +659,17 @@ Restituisci SOLO questo JSON:
     const feed = await publishIgMedia(igUserId, token, igImageUrl, { caption: message });
     ig = feed.id ? { ig_post_id: feed.id } : { ig_error: feed.error, ig_detail: feed.detail };
 
-    // Story: stessa creatività in verticale 1080×1920 con titolo (24h)
-    const story = await publishIgMedia(igUserId, token, storyImageUrl, { media_type: 'STORIES' }, storyBgUrl);
-    Object.assign(ig, story.id ? { ig_story_id: story.id } : { ig_story_error: story.error, ig_story_detail: story.detail });
+    // Story: creatività verticale con titolo (24h). Se il render del worker
+    // fallisce (limiti CPU), fallback sull'immagine Pollinations senza titolo
+    let story = await publishIgMedia(igUserId, token, storyImageUrl, { media_type: 'STORIES' }, storyBgUrl);
+    let igStoryFallback = false;
+    if (!story.id) {
+      igStoryFallback = true;
+      story = await publishIgMedia(igUserId, token, storyBgUrl, { media_type: 'STORIES' });
+    }
+    Object.assign(ig, story.id
+      ? { ig_story_id: story.id, ...(igStoryFallback && { ig_story_fallback: true }) }
+      : { ig_story_error: story.error, ig_story_detail: story.detail });
   } catch (e) {
     ig = { ig_error: String(e) };
   }
@@ -673,24 +681,29 @@ Restituisci SOLO questo JSON:
   let fbStory = {};
   try {
     await warmImage(storyBgUrl); // no-op se già in cache (fatto dallo step IG)
-    const storyPhotoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: storyImageUrl, published: false, access_token: token }),
-    });
-    const storyPhotoData = await storyPhotoRes.json();
-    if (storyPhotoRes.ok && storyPhotoData.id) {
+    // Prima l'immagine con titolo; se il render fallisce, quella senza
+    for (const [candidateUrl, fallback] of [[storyImageUrl, false], [storyBgUrl, true]]) {
+      const storyPhotoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: candidateUrl, published: false, access_token: token }),
+      });
+      const storyPhotoData = await storyPhotoRes.json();
+      if (!storyPhotoRes.ok || !storyPhotoData.id) {
+        fbStory = { fb_story_error: 'fb_story_photo_failed', fb_story_detail: storyPhotoData };
+        continue;
+      }
       const storyRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photo_stories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ photo_id: storyPhotoData.id, access_token: token }),
       });
       const storyData = await storyRes.json();
-      fbStory = storyRes.ok && storyData.success
-        ? { fb_story_id: storyData.post_id }
-        : { fb_story_error: 'fb_story_failed', fb_story_detail: storyData };
-    } else {
-      fbStory = { fb_story_error: 'fb_story_photo_failed', fb_story_detail: storyPhotoData };
+      if (storyRes.ok && storyData.success) {
+        fbStory = { fb_story_id: storyData.post_id, ...(fallback && { fb_story_fallback: true }) };
+        break;
+      }
+      fbStory = { fb_story_error: 'fb_story_failed', fb_story_detail: storyData };
     }
   } catch (e) {
     fbStory = { fb_story_error: String(e) };
@@ -779,22 +792,24 @@ async function handleStoryImage(request, env) {
   const cached = await cache.match(request);
   if (cached) return cached;
 
-  const bg = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1080&height=1920&nologo=true&model=flux&seed=42`;
+  // 720×1280 e non 1080×1920: la rasterizzazione resvg a piena risoluzione
+  // supera i limiti di risorse del worker (error 1102); Meta scala comunque
+  const bg = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=720&height=1280&nologo=true&model=flux&seed=42`;
   if (!interFont) interFont = await loadGoogleFont({ family: 'Inter', weight: 700 });
 
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const html = `
-    <div style="display:flex; flex-direction:column; width:1080px; height:1920px; position:relative;">
-      <img src="${bg}" width="1080" height="1920" style="position:absolute; top:0; left:0; object-fit:cover;" />
-      <div style="display:flex; flex-direction:column; margin-top:auto; padding:200px 60px 160px; background:linear-gradient(to bottom, rgba(30,58,138,0), rgba(30,58,138,0.55) 35%, rgba(30,58,138,0.97));">
-        <div style="display:flex; font-size:68px; font-weight:700; color:#FFFFFF; line-height:1.2; text-shadow: 0 3px 14px rgba(0,0,0,0.45);">${esc(title)}</div>
-        <div style="display:flex; font-size:42px; font-weight:700; color:#F97316; margin-top:28px; text-shadow: 0 2px 10px rgba(0,0,0,0.4);">ondamente.it</div>
+    <div style="display:flex; flex-direction:column; width:720px; height:1280px; position:relative;">
+      <img src="${bg}" width="720" height="1280" style="position:absolute; top:0; left:0; object-fit:cover;" />
+      <div style="display:flex; flex-direction:column; margin-top:auto; padding:130px 40px 110px; background:linear-gradient(to bottom, rgba(30,58,138,0), rgba(30,58,138,0.55) 35%, rgba(30,58,138,0.97));">
+        <div style="display:flex; font-size:46px; font-weight:700; color:#FFFFFF; line-height:1.2; text-shadow: 0 2px 10px rgba(0,0,0,0.45);">${esc(title)}</div>
+        <div style="display:flex; font-size:28px; font-weight:700; color:#F97316; margin-top:20px; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">ondamente.it</div>
       </div>
     </div>`;
 
   const img = new ImageResponse(html, {
-    width: 1080,
-    height: 1920,
+    width: 720,
+    height: 1280,
     fonts: [{ name: 'Inter', data: interFont, weight: 700, style: 'normal' }],
   });
   const body = await img.arrayBuffer();
