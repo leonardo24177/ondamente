@@ -50,7 +50,8 @@ Un'unica esecuzione genera testo (Claude Haiku) + immagine (Pollinations) e pubb
 4. **Story Facebook** 1080×1920 (stessa immagine della story IG; upload foto non pubblicata su `/photos` + `/photo_stories` — serve un upload separato perché Meta non accetta come storia una foto già usata in un post)
 
 ### Immagine story con titolo (`/api/story-image`)
-Le story non usano l'URL Pollinations diretto ma `GET /api/story-image?prompt=...&title=...&sig=...`: il worker compone un PNG 1080×1920 (sfondo Pollinations + gradient blu brand + `story_title` generato da Claude + "ondamente.it") con `workers-og` (satori + resvg WASM, font Inter da Google Fonts). Dettagli:
+Le story non usano l'URL Pollinations diretto ma `GET /api/story-image?prompt=...&title=...&sig=...`: il worker compone un PNG 720×1280 (sfondo Pollinations + gradient blu brand + `story_title` generato da Claude + "ondamente.it") con `workers-og` (satori + resvg WASM, font Inter da Google Fonts). Dettagli:
+- **Limite noto (decisione 2026-07-03):** sul piano Workers Free il render supera i 10 ms di CPU e riesce ~1 volta su 3 (tipicamente la prima della giornata). Quando fallisce (503/error 1102) il cron pubblica la story con l'immagine Pollinations senza titolo (`ig_story_fallback`/`fb_story_fallback: true` nella risposta). Si è scelto di NON passare a Workers Paid ($5/mese, che renderebbe il render affidabile) — riproporre solo se il fallback diventa un problema.
 - `sig` = primi 16 byte hex di SHA-256(`WORKER_SECRET:prompt:title`) — l'endpoint è pubblico (Meta deve scaricarlo) ma non renderizza immagini arbitrarie
 - il PNG è cachato in `caches.default` (Meta lo scarica più volte: story FB + container IG con retry)
 - il warm-up va fatto sull'URL Pollinations di sfondo, NON sull'endpoint: un worker non può fare fetch di se stesso
