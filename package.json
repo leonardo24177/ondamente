@@ -1,0 +1,9 @@
+{
+  "name": "ondamente",
+  "private": true,
+  "type": "module",
+  "description": "OndaMente DSA — Cloudflare Worker",
+  "dependencies": {
+    "workers-og": "^0.0.27"
+  }
+}

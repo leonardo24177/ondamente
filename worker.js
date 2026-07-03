@@ -12,6 +12,10 @@
  *   STRIPE_WEBHOOK_SECRET  = whsec_...
  */
 
+import { ImageResponse, loadGoogleFont } from 'workers-og';
+
+const WORKER_URL = 'https://ondamente.leonardo-stancati.workers.dev';
+
 const ALLOWED_ORIGINS = [
   'https://ondamente.it',
   'https://www.ondamente.it',
@@ -53,6 +57,11 @@ export default {
     // ── ROUTE: Facebook Post (no CORS check — chiamata server-to-server) ──
     if (request.method === 'POST' && url.pathname === '/api/fb-post') {
       return handleFbPost(request, env);
+    }
+
+    // ── ROUTE: Immagine story composta (no CORS check — la scarica il fetcher di Meta) ──
+    if (request.method === 'GET' && url.pathname === '/api/story-image') {
+      return handleStoryImage(request, env);
     }
 
     // ── ROUTE: Test cron (temporaneo) ───────────────────────────────
@@ -591,7 +600,7 @@ async function handleDailyFbPost(env) {
         content: `Genera un post Facebook per OndaMente DSA (ondamente.it) — app AI per studenti universitari italiani con DSA (Dislessia, ADHD, Discalculia, BES). Brand voice: empatico, incoraggiante, mai pietistico. 80% contenuto educativo, 20% promozionale. Data: ${today}.
 
 Restituisci SOLO questo JSON:
-{"caption":"testo 150-250 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri 10-15","image_prompt":"short English description for AI image generation, contemporary editorial flat illustration for adults, characters are Italian university students age 20-26 with mature adult features (never children or teenagers), vary the scene each day (university library, lecture hall, campus, study desk with laptop and coffee), dominant colors #2563EB blue and #F97316 orange on white background, absolutely no text or letters in image"}`,
+{"caption":"testo 150-250 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri 10-15","story_title":"titolo italiano per la story, max 7 parole, incisivo, senza emoji e senza hashtag","image_prompt":"short English description for AI image generation, contemporary editorial flat illustration for adults, characters are Italian university students age 20-26 with mature adult features (never children or teenagers), vary the scene each day (university library, lecture hall, campus, study desk with laptop and coffee), dominant colors #2563EB blue and #F97316 orange on white background, absolutely no text or letters in image"}`,
       }],
     }),
   });
@@ -636,8 +645,13 @@ Restituisci SOLO questo JSON:
 
   // 4. Cross-post su Instagram (@ondamente_dsa) — non blocca il post FB se fallisce
   const igUserId = env.IG_USER_ID || '17841417643234744';
-  // Verticale 1080×1920 condivisa da story IG e story FB
-  const storyImageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1080&height=1920&nologo=true&model=flux&seed=42`;
+  // Story IG + FB: sfondo Pollinations verticale 1080×1920 + titolo sovraimpresso
+  // dal worker stesso (/api/story-image). A Meta si passa l'URL dell'endpoint;
+  // il warm-up però va fatto sull'URL Pollinations (il worker non può fare
+  // fetch di se stesso) — sarà satori a scaricare lo sfondo, già in cache.
+  const storyTitle = (post.story_title || 'OndaMente DSA').trim();
+  const storyBgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(image_prompt)}?width=1080&height=1920&nologo=true&model=flux&seed=42`;
+  const storyImageUrl = `${WORKER_URL}/api/story-image?prompt=${encodeURIComponent(image_prompt)}&title=${encodeURIComponent(storyTitle)}&sig=${await storySig(env, image_prompt, storyTitle)}`;
   let ig = {};
   try {
     // Post nel feed: formato quadrato, stesso prompt e seed per coerenza visiva
@@ -645,8 +659,8 @@ Restituisci SOLO questo JSON:
     const feed = await publishIgMedia(igUserId, token, igImageUrl, { caption: message });
     ig = feed.id ? { ig_post_id: feed.id } : { ig_error: feed.error, ig_detail: feed.detail };
 
-    // Story: stessa creatività in verticale 1080×1920 (24h, solo immagine)
-    const story = await publishIgMedia(igUserId, token, storyImageUrl, { media_type: 'STORIES' });
+    // Story: stessa creatività in verticale 1080×1920 con titolo (24h)
+    const story = await publishIgMedia(igUserId, token, storyImageUrl, { media_type: 'STORIES' }, storyBgUrl);
     Object.assign(ig, story.id ? { ig_story_id: story.id } : { ig_story_error: story.error, ig_story_detail: story.detail });
   } catch (e) {
     ig = { ig_error: String(e) };
@@ -658,6 +672,7 @@ Restituisci SOLO questo JSON:
   // una foto già usata in un post pubblicato.
   let fbStory = {};
   try {
+    await warmImage(storyBgUrl); // no-op se già in cache (fatto dallo step IG)
     const storyPhotoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -684,21 +699,26 @@ Restituisci SOLO questo JSON:
   return { success: true, post_id: postData.id, ...ig, ...fbStory };
 }
 
-// Pubblica un contenuto Instagram (feed o story): pre-genera l'immagine su
-// Pollinations, poi crea e pubblica il container con retry
-async function publishIgMedia(igUserId, token, imageUrl, extraParams) {
-  // Pollinations crea l'immagine al primo accesso (anche 30+s) e il fetcher
-  // di Instagram va in timeout se non la trova già in cache
-  let warmed = false;
-  for (let i = 0; i < 3 && !warmed; i++) {
+// Pollinations crea l'immagine al primo accesso (anche 30+s) e il fetcher
+// di Meta va in timeout se non la trova già in cache: pre-scarica con retry
+async function warmImage(imageUrl) {
+  for (let i = 0; i < 3; i++) {
     try {
       const warm = await fetch(imageUrl);
       if (warm.ok && (warm.headers.get('content-type') || '').startsWith('image/')) {
         await warm.arrayBuffer();
-        warmed = true;
+        return;
       }
     } catch (e) { /* riprova */ }
   }
+}
+
+// Pubblica un contenuto Instagram (feed o story): pre-genera l'immagine,
+// poi crea e pubblica il container con retry. warmUrl serve quando l'URL
+// da pubblicare è l'endpoint /api/story-image: si scalda solo lo sfondo
+// Pollinations, perché il worker non può fare fetch di se stesso.
+async function publishIgMedia(igUserId, token, imageUrl, extraParams, warmUrl = imageUrl) {
+  await warmImage(warmUrl);
 
   let containerData = null;
   for (let i = 0; i < 3; i++) {
@@ -727,6 +747,62 @@ async function publishIgMedia(igUserId, token, imageUrl, extraParams) {
     await new Promise(r => setTimeout(r, 5000));
   }
   return { error: 'publish_failed', detail: lastErr };
+}
+
+// ════ STORY IMAGE ══════════════════════════════════════════════════
+// Compone l'immagine story 1080×1920: sfondo Pollinations + titolo e
+// "ondamente.it" sovraimpressi (satori + resvg via workers-og). Il cron
+// genera l'URL firmato e lo passa a Meta, che scarica il PNG da qui.
+
+// Firma anti-abuso: l'endpoint è pubblico (Meta deve poterlo scaricare),
+// ma senza sig valida non renderizza immagini arbitrarie
+async function storySig(env, prompt, title) {
+  const data = new TextEncoder().encode(`${env.WORKER_SECRET}:${prompt}:${title}`);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(hash)].slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+let interFont = null; // cache per-isolate del font (Google Fonts)
+
+async function handleStoryImage(request, env) {
+  const url = new URL(request.url);
+  const prompt = url.searchParams.get('prompt') || '';
+  const title = url.searchParams.get('title') || '';
+  const sig = url.searchParams.get('sig') || '';
+  if (!prompt || !title || sig !== await storySig(env, prompt, title)) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  // Meta scarica l'immagine più volte (story FB + container IG con retry):
+  // renderizza una volta sola e servi dalla cache
+  const cache = caches.default;
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const bg = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1080&height=1920&nologo=true&model=flux&seed=42`;
+  if (!interFont) interFont = await loadGoogleFont({ family: 'Inter', weight: 700 });
+
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const html = `
+    <div style="display:flex; flex-direction:column; width:1080px; height:1920px; position:relative;">
+      <img src="${bg}" width="1080" height="1920" style="position:absolute; top:0; left:0; object-fit:cover;" />
+      <div style="display:flex; flex-direction:column; margin-top:auto; padding:72px 60px 160px; background:linear-gradient(to bottom, rgba(37,99,235,0), rgba(37,99,235,0.92));">
+        <div style="display:flex; font-size:68px; font-weight:700; color:#FFFFFF; line-height:1.2;">${esc(title)}</div>
+        <div style="display:flex; font-size:42px; font-weight:700; color:#F97316; margin-top:28px;">ondamente.it</div>
+      </div>
+    </div>`;
+
+  const img = new ImageResponse(html, {
+    width: 1080,
+    height: 1920,
+    fonts: [{ name: 'Inter', data: interFont, weight: 700, style: 'normal' }],
+  });
+  const body = await img.arrayBuffer();
+  const res = new Response(body, {
+    headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' },
+  });
+  await cache.put(request, res.clone());
+  return res;
 }
 
 // ════ CORS ═════════════════════════════════════════════════════════

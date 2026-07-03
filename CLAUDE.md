@@ -46,8 +46,15 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 Un'unica esecuzione genera testo (Claude Haiku) + immagine (Pollinations) e pubblica:
 1. **Post Facebook** 1200×630
 2. **Post Instagram** 1080×1080 (stessa creatività)
-3. **Story Instagram** 1080×1920 (`media_type=STORIES`, dura 24h, solo immagine — l'API non supporta testo/link/sticker)
-4. **Story Facebook** 1080×1920 (stessa immagine verticale della story IG; upload foto non pubblicata su `/photos` + `/photo_stories` — serve un upload separato perché Meta non accetta come storia una foto già usata in un post)
+3. **Story Instagram** 1080×1920 (`media_type=STORIES`, dura 24h — l'API non supporta testo/link/sticker, quindi il testo è dentro l'immagine, vedi sotto)
+4. **Story Facebook** 1080×1920 (stessa immagine della story IG; upload foto non pubblicata su `/photos` + `/photo_stories` — serve un upload separato perché Meta non accetta come storia una foto già usata in un post)
+
+### Immagine story con titolo (`/api/story-image`)
+Le story non usano l'URL Pollinations diretto ma `GET /api/story-image?prompt=...&title=...&sig=...`: il worker compone un PNG 1080×1920 (sfondo Pollinations + gradient blu brand + `story_title` generato da Claude + "ondamente.it") con `workers-og` (satori + resvg WASM, font Inter da Google Fonts). Dettagli:
+- `sig` = primi 16 byte hex di SHA-256(`WORKER_SECRET:prompt:title`) — l'endpoint è pubblico (Meta deve scaricarlo) ma non renderizza immagini arbitrarie
+- il PNG è cachato in `caches.default` (Meta lo scarica più volte: story FB + container IG con retry)
+- il warm-up va fatto sull'URL Pollinations di sfondo, NON sull'endpoint: un worker non può fare fetch di se stesso
+- la dipendenza `workers-og` richiede `npm ci` nel workflow di deploy (`deploy-worker.yml`) — wrangler bundla da `node_modules`
 
 Ogni step è indipendente: se IG fallisce il post FB esce comunque (`ig_error`/`ig_story_error`/`fb_story_error` nella risposta). Le immagini vengono pre-scaricate dal worker ("warm-up") perché Pollinations genera al primo accesso e il fetcher di Meta andrebbe in timeout. I post IG non si possono cancellare via API (solo a mano dall'app); quelli FB sì.
 

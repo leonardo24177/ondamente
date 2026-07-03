@@ -20,3 +20,10 @@ fb/
 
 # Credenziali sensibili
 stripe_backup_code.txt
+
+# Guide locali (non pubblicare)
+GUIDA-AGENTE-SOCIAL.md
+
+# Node
+node_modules/
+dist/
