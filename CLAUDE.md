@@ -40,7 +40,15 @@ curl -s -X POST https://ondamente.leonardo-stancati.workers.dev/api/test-cron \
 
 ## Social
 - **Facebook:** `https://www.facebook.com/profile.php?id=1151803171347006` — icona nel footer di tutte le pagine pubbliche. Quando disponibile, aggiornare con vanity URL.
-- **Instagram:** `@ondamente_dsa` (IG User ID: `17841417643234744`) — account Business collegato alla pagina FB, icona nel footer. Il cron quotidiano cross-posta su entrambi (stessa creatività: FB 1200×630, IG 1080×1080). Se IG fallisce il post FB esce comunque (`ig_error` nella risposta).
+- **Instagram:** `@ondamente_dsa` (IG User ID: `17841417643234744`) — account Business collegato alla pagina FB, icona nel footer.
+
+## Cron social (tutti i giorni alle 9:00 ora italiana, `0 7 * * *` in wrangler.toml)
+Un'unica esecuzione genera testo (Claude Haiku) + immagine (Pollinations) e pubblica:
+1. **Post Facebook** 1200×630
+2. **Post Instagram** 1080×1080 (stessa creatività)
+3. **Story Instagram** 1080×1920 (`media_type=STORIES`, dura 24h, solo immagine — l'API non supporta testo/link/sticker)
+
+Ogni step è indipendente: se IG fallisce il post FB esce comunque (`ig_error`/`ig_story_error` nella risposta). Le immagini vengono pre-scaricate dal worker ("warm-up") perché Pollinations genera al primo accesso e il fetcher di Meta andrebbe in timeout. I post IG non si possono cancellare via API (solo a mano dall'app); quelli FB sì.
 
 ## Immagini Facebook (Pollinations.ai)
 - **Modello:** `flux` (migliore aderenza al prompt rispetto al default)
