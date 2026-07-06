@@ -72,6 +72,31 @@ export default {
       return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
     }
 
+    // ── ROUTE: Post manuali (no CORS check — la pagina è servita dal
+    // worker stesso e /img/ lo scaricano i fetcher di Meta; le API sono
+    // protette dal WORKER_SECRET come /api/test-cron) ──────────────────
+    if (request.method === 'GET' && url.pathname === '/publish') {
+      return new Response(PUBLISH_PAGE, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+    if (request.method === 'GET' && url.pathname.startsWith('/img/')) {
+      const img = await env.IMG_KV.getWithMetadata(url.pathname.slice(5), 'arrayBuffer');
+      if (!img || !img.value) return new Response('Not found', { status: 404 });
+      return new Response(img.value, {
+        headers: {
+          'Content-Type': (img.metadata && img.metadata.ct) || 'image/jpeg',
+          'Cache-Control': 'public, max-age=86400',
+        },
+      });
+    }
+    if (request.method === 'POST' && url.pathname === '/api/custom-prepare') {
+      return handleCustomPrepare(request, env);
+    }
+    if (request.method === 'POST' && url.pathname === '/api/custom-publish') {
+      return handleCustomPublish(request, env);
+    }
+
     if (!isAllowed) return new Response('Forbidden', { status: 403 });
 
     // ── ROUTE: Checkout ──────────────────────────────────────────
@@ -713,8 +738,11 @@ Restituisci SOLO questo JSON:
 }
 
 // Pollinations crea l'immagine al primo accesso (anche 30+s) e il fetcher
-// di Meta va in timeout se non la trova già in cache: pre-scarica con retry
+// di Meta va in timeout se non la trova già in cache: pre-scarica con retry.
+// Con null il warm-up è saltato (immagini già pronte, es. /img/ dal KV, che
+// il worker comunque non potrebbe scaricare: niente fetch verso se stesso)
 async function warmImage(imageUrl) {
+  if (!imageUrl) return;
   for (let i = 0; i < 3; i++) {
     try {
       const warm = await fetch(imageUrl);
@@ -819,6 +847,328 @@ async function handleStoryImage(request, env) {
   await cache.put(request, res.clone());
   return res;
 }
+
+// ════ POST MANUALI (pagina /publish) ═══════════════════════════════
+
+function jsonPub(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+// Fase 1: riceve multipart {secret, spunto, image}, salva l'immagine nel
+// KV IMG_KV (scade dopo 7 giorni) e chiede a Claude una proposta di
+// caption basata sullo spunto. NON pubblica nulla: restituisce testo +
+// image_id che l'operatore rivede nella pagina prima della fase 2.
+async function handleCustomPrepare(request, env) {
+  let form;
+  try { form = await request.formData(); } catch (e) { return jsonPub({ error: 'bad_form' }, 400); }
+  if (form.get('secret') !== env.WORKER_SECRET) return jsonPub({ error: 'unauthorized' }, 401);
+
+  const spunto = String(form.get('spunto') || '').trim();
+  const image = form.get('image');
+  if (!spunto) return jsonPub({ error: 'missing_spunto' }, 400);
+  if (!image || typeof image === 'string' || !image.size) return jsonPub({ error: 'missing_image' }, 400);
+  const ct = image.type || '';
+  if (ct !== 'image/jpeg' && ct !== 'image/png') {
+    return jsonPub({ error: 'bad_image_type', detail: 'Formati accettati: JPG o PNG' }, 400);
+  }
+  if (image.size > 8 * 1024 * 1024) {
+    return jsonPub({ error: 'image_too_big', detail: 'Dimensione massima: 8 MB' }, 400);
+  }
+
+  const imageId = crypto.randomUUID();
+  await env.IMG_KV.put(imageId, await image.arrayBuffer(), {
+    expirationTtl: 7 * 24 * 3600,
+    metadata: { ct },
+  });
+
+  const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: 'Rispondi SOLO con un oggetto JSON valido, senza markdown, senza spiegazioni.',
+      messages: [{
+        role: 'user',
+        content: `Scrivi un post Facebook per OndaMente DSA (ondamente.it) — app AI per studenti universitari italiani con DSA (Dislessia, ADHD, Discalculia, BES). Brand voice: empatico, incoraggiante, mai pietistico.
+
+NON scegliere tu l'argomento: l'operatore fornisce lo spunto per un post
+specifico (es. il lancio di una nuova funzione o un annuncio) e l'immagine è
+già pronta, caricata da lui. Attieniti fedelmente allo spunto: non aggiungere
+dati, nomi, prezzi o date che non vi compaiano (oltre a ondamente.it come
+call-to-action). Il testo verrà riletto e approvato dall'operatore prima
+della pubblicazione.
+
+Spunto dell'operatore:
+"""
+${spunto}
+"""
+
+Restituisci SOLO questo JSON:
+{"caption":"testo 100-200 parole con emoji e call-to-action ondamente.it","hashtag":"#ondamente #dsauniversità #dislessia #adhd #bes più altri pertinenti"}`,
+      }],
+    }),
+  });
+
+  if (!claudeRes.ok) return jsonPub({ error: 'claude_failed', status: claudeRes.status }, 502);
+  const claudeData = await claudeRes.json();
+  const text = (claudeData.content?.[0]?.text || '').trim()
+    .replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+
+  let post;
+  try { post = JSON.parse(text); } catch (e) { return jsonPub({ error: 'json_parse_failed', text }, 502); }
+  if (!post.caption) return jsonPub({ error: 'missing_fields', post }, 502);
+
+  return jsonPub({ image_id: imageId, caption: post.caption, hashtag: post.hashtag || '' });
+}
+
+// Fase 2: riceve JSON {secret, image_id, message, story} e pubblica il
+// testo approvato con l'immagine caricata su FB feed + IG feed (+ story
+// IG e FB se richiesta, con l'immagine così com'è: niente compositing
+// del titolo, la creatività caricata è già finita). Stessa logica del
+// cron: gli errori IG/story non bloccano il post FB già riuscito.
+async function handleCustomPublish(request, env) {
+  let body;
+  try { body = await request.json(); } catch (e) { body = {}; }
+  if (body.secret !== env.WORKER_SECRET) return jsonPub({ error: 'unauthorized' }, 401);
+
+  const imageId = String(body.image_id || '');
+  const message = String(body.message || '').trim();
+  if (!imageId || !message) return jsonPub({ error: 'missing_fields' }, 400);
+
+  const img = await env.IMG_KV.getWithMetadata(imageId, 'arrayBuffer');
+  if (!img || !img.value) {
+    return jsonPub({ error: 'img_not_found', detail: 'Immagine scaduta o mai caricata: ripetere la fase 1' }, 404);
+  }
+
+  const token = env.FB_PAGE_ACCESS_TOKEN;
+  const pageId = env.FB_PAGE_ID;
+  const imageUrl = `${WORKER_URL}/img/${imageId}`;
+
+  const photoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: imageUrl, published: false, access_token: token }),
+  });
+  const photoData = await photoRes.json();
+  if (!photoRes.ok || !photoData.id) return jsonPub({ error: 'fb_photo_failed', photoData }, 502);
+
+  const postRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/feed`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      attached_media: [{ media_fbid: photoData.id }],
+      access_token: token,
+    }),
+  });
+  const postData = await postRes.json();
+  if (!postRes.ok) return jsonPub({ error: 'fb_post_failed', postData }, 502);
+
+  const igUserId = env.IG_USER_ID || '17841417643234744';
+  let ig = {};
+  try {
+    // warmUrl null: l'immagine è nel KV, servita all'istante (e il worker
+    // non può comunque fare fetch di se stesso)
+    const feed = await publishIgMedia(igUserId, token, imageUrl, { caption: message }, null);
+    ig = feed.id ? { ig_post_id: feed.id } : { ig_error: feed.error, ig_detail: feed.detail };
+
+    if (body.story) {
+      const story = await publishIgMedia(igUserId, token, imageUrl, { media_type: 'STORIES' }, null);
+      Object.assign(ig, story.id ? { ig_story_id: story.id } : { ig_story_error: story.error, ig_story_detail: story.detail });
+    }
+  } catch (e) {
+    ig = { ig_error: String(e) };
+  }
+
+  // Storia Facebook: upload separato, Meta non accetta come storia una
+  // foto già usata in un post pubblicato
+  let fbStory = {};
+  if (body.story) {
+    try {
+      const storyPhotoRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: imageUrl, published: false, access_token: token }),
+      });
+      const storyPhotoData = await storyPhotoRes.json();
+      if (storyPhotoRes.ok && storyPhotoData.id) {
+        const storyRes = await fetch(`https://graph.facebook.com/v20.0/${pageId}/photo_stories`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photo_id: storyPhotoData.id, access_token: token }),
+        });
+        const storyData = await storyRes.json();
+        fbStory = storyRes.ok && storyData.success
+          ? { fb_story_id: storyData.post_id }
+          : { fb_story_error: 'fb_story_failed', fb_story_detail: storyData };
+      } else {
+        fbStory = { fb_story_error: 'fb_story_photo_failed', fb_story_detail: storyPhotoData };
+      }
+    } catch (e) {
+      fbStory = { fb_story_error: String(e) };
+    }
+  }
+
+  return jsonPub({ success: true, post_id: postData.id, ...ig, ...fbStory });
+}
+
+const PUBLISH_PAGE = `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Post manuale — OndaMente</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #1c1e21; padding: 20px 12px 60px; }
+  .box { max-width: 560px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.15); padding: 24px; }
+  h1 { font-size: 20px; color: #2563EB; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #65676b; margin-bottom: 20px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 5px; }
+  input[type=password], textarea { width: 100%; border: 1px solid #ccd0d5; border-radius: 6px; padding: 9px 10px; font-size: 14px; font-family: inherit; }
+  textarea { resize: vertical; }
+  input[type=file] { font-size: 13px; }
+  .hint { font-size: 12px; color: #65676b; margin-top: 4px; line-height: 1.4; }
+  button { margin-top: 18px; width: 100%; background: #2563EB; color: #fff; border: 0; border-radius: 6px; padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  button.publish { background: #1a7f37; }
+  #preview { max-width: 100%; border-radius: 6px; margin-top: 10px; display: none; }
+  #step2 { display: none; border-top: 1px solid #e4e6eb; margin-top: 24px; padding-top: 18px; }
+  .chk { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 14px; }
+  .chk input { width: auto; }
+  #esito { margin-top: 16px; font-size: 13.5px; line-height: 1.5; padding: 12px; border-radius: 6px; display: none; white-space: pre-wrap; }
+  #esito.ok { display: block; background: #e6f4ea; color: #1a7f37; }
+  #esito.err { display: block; background: #fce8e6; color: #c5221f; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Post manuale</h1>
+  <div class="sub">OndaMente DSA — carica un'immagine e uno spunto: l'AI propone
+  il testo, tu lo correggi e pubblichi su Facebook e Instagram.</div>
+
+  <label>Password</label>
+  <input type="password" id="secret" autocomplete="current-password"/>
+
+  <label>Immagine (JPG o PNG, max 8 MB)</label>
+  <input type="file" id="image" accept="image/jpeg,image/png"/>
+  <div class="hint">Per Instagram usare un'immagine quadrata o orizzontale (le immagini
+  più alte del formato 4:5 vengono rifiutate da Instagram; su Facebook passano comunque).</div>
+  <img id="preview" alt=""/>
+
+  <label>Spunto per il testo</label>
+  <textarea id="spunto" rows="5" placeholder="Es.: da lunedì 20 è disponibile la nuova funzione ...; per tutti gli utenti su ondamente.it"></textarea>
+  <div class="hint">Scrivi i fatti: cosa, chi, da quando. L'AI usa SOLO ciò che scrivi qui
+  (non inventa nomi, prezzi o date).</div>
+
+  <button id="btnGenera">1 · Genera il testo</button>
+
+  <div id="step2">
+    <label>Testo del post — rileggi e correggi prima di pubblicare</label>
+    <textarea id="messaggio" rows="12"></textarea>
+    <div class="chk">
+      <input type="checkbox" id="story" checked/>
+      <label for="story" style="margin:0">Pubblica anche come storia (Instagram + Facebook)</label>
+    </div>
+    <button id="btnPubblica" class="publish">2 · Pubblica ORA su Facebook e Instagram</button>
+    <div class="hint">La pubblicazione è immediata. I post Instagram non si possono
+    cancellare via API: eventuali errori vanno corretti a mano dall'app.</div>
+  </div>
+
+  <div id="esito"></div>
+</div>
+<script>
+  var imageId = null;
+  var $ = function (id) { return document.getElementById(id); };
+
+  $('image').addEventListener('change', function () {
+    var f = this.files[0];
+    if (!f) { $('preview').style.display = 'none'; return; }
+    $('preview').src = URL.createObjectURL(f);
+    $('preview').style.display = 'block';
+  });
+
+  function esito(msg, ok) {
+    var e = $('esito');
+    e.textContent = msg;
+    e.className = ok ? 'ok' : 'err';
+  }
+
+  $('btnGenera').addEventListener('click', async function () {
+    var f = $('image').files[0];
+    if (!$('secret').value) return esito('Inserisci la password.', false);
+    if (!f) return esito("Scegli l'immagine da pubblicare.", false);
+    if (!$('spunto').value.trim()) return esito('Scrivi lo spunto per il testo.', false);
+
+    this.disabled = true;
+    this.textContent = 'Generazione in corso…';
+    esito('', true); $('esito').style.display = 'none';
+
+    var fd = new FormData();
+    fd.append('secret', $('secret').value);
+    fd.append('spunto', $('spunto').value);
+    fd.append('image', f);
+
+    try {
+      var res = await fetch('/api/custom-prepare', { method: 'POST', body: fd });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.detail || data.error || res.status);
+      imageId = data.image_id;
+      $('messaggio').value = data.caption + (data.hashtag ? '\\n\\n' + data.hashtag : '');
+      $('step2').style.display = 'block';
+      $('messaggio').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      esito('Errore nella generazione: ' + err.message, false);
+    }
+    this.disabled = false;
+    this.textContent = '1 · Genera il testo';
+  });
+
+  $('btnPubblica').addEventListener('click', async function () {
+    if (!imageId || !$('messaggio').value.trim()) return esito('Genera prima il testo.', false);
+    this.disabled = true;
+    this.textContent = 'Pubblicazione in corso…';
+
+    try {
+      var res = await fetch('/api/custom-publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: $('secret').value,
+          image_id: imageId,
+          message: $('messaggio').value,
+          story: $('story').checked,
+        }),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.detail || data.error || res.status);
+      var righe = ['✅ Pubblicato su Facebook (id ' + data.post_id + ')'];
+      righe.push(data.ig_post_id ? '✅ Pubblicato su Instagram (id ' + data.ig_post_id + ')'
+                                 : '⚠️ Instagram feed non pubblicato: ' + JSON.stringify(data.ig_detail || data.ig_error || ''));
+      if ($('story').checked) {
+        righe.push(data.ig_story_id ? '✅ Storia Instagram pubblicata'
+                                    : '⚠️ Storia Instagram non pubblicata: ' + JSON.stringify(data.ig_story_detail || data.ig_story_error || ''));
+        righe.push(data.fb_story_id ? '✅ Storia Facebook pubblicata'
+                                    : '⚠️ Storia Facebook non pubblicata: ' + JSON.stringify(data.fb_story_detail || data.fb_story_error || ''));
+      }
+      esito(righe.join('\\n'), true);
+    } catch (err) {
+      esito('Errore nella pubblicazione: ' + err.message, false);
+    }
+    this.disabled = false;
+    this.textContent = '2 · Pubblica ORA su Facebook e Instagram';
+  });
+</script>
+</body>
+</html>`;
 
 // ════ CORS ═════════════════════════════════════════════════════════
 function corsHeaders(origin, isAllowed) {

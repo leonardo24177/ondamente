@@ -59,6 +59,25 @@ Le story non usano l'URL Pollinations diretto ma `GET /api/story-image?prompt=..
 
 Ogni step è indipendente: se IG fallisce il post FB esce comunque (`ig_error`/`ig_story_error`/`fb_story_error` nella risposta). Le immagini vengono pre-scaricate dal worker ("warm-up") perché Pollinations genera al primo accesso e il fetcher di Meta andrebbe in timeout. I post IG non si possono cancellare via API (solo a mano dall'app); quelli FB sì.
 
+## Post manuali — pagina `/publish`
+`https://ondamente.leonardo-stancati.workers.dev/publish` — per i post fuori
+calendario (es. lancio di una nuova funzione con creatività già pronta).
+Flusso in 2 fasi con revisione umana obbligatoria:
+1. password (= `WORKER_SECRET`) + immagine (JPG/PNG max 8 MB) + spunto di testo
+   → `/api/custom-prepare` salva l'immagine nel KV `IMG_KV` (TTL 7 giorni,
+   servita su `GET /img/{id}`: IG scarica solo da URL pubblici) e Claude propone
+   caption+hashtag attenendosi al SOLO spunto
+2. l'operatore corregge il testo in pagina → `/api/custom-publish` pubblica su
+   FB feed + IG feed (+ story IG e FB opzionali, immagine così com'è: niente
+   compositing titolo, la creatività caricata è già finita)
+
+Note: le route sono PRIMA del check CORS (la pagina è servita dal worker,
+Meta scarica `/img/`); `warmImage(null)` = no-op (il worker non può fare fetch
+di se stesso, e il KV non va scaldato). IG rifiuta immagini più verticali di
+4:5. **Prerequisito deploy:** `npx wrangler kv namespace create IMG_KV` e id
+in `wrangler.toml` (placeholder `SOSTITUIRE_CON_ID_NAMESPACE`), senza il quale
+il deploy fallisce.
+
 ## Immagini Facebook (Pollinations.ai)
 - **Modello:** `flux` (migliore aderenza al prompt rispetto al default)
 - **Seed:** `42` (fisso — stile visivo coerente tra i post)

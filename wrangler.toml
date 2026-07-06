@@ -4,3 +4,11 @@ compatibility_date = "2024-11-01"
 
 [triggers]
 crons = ["0 7 * * *"]
+
+# KV per le immagini caricate dalla pagina /publish (post manuali):
+# Instagram scarica le immagini solo da URL pubblici, quindi il worker le
+# conserva qui e le serve su GET /img/{id} (scadenza automatica: 7 giorni).
+# L'id si ottiene una tantum con: npx wrangler kv namespace create IMG_KV
+[[kv_namespaces]]
+binding = "IMG_KV"
+id = "42a37d841be5453b8c4d619ac71a679d"
