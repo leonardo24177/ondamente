@@ -1100,6 +1100,8 @@ const PUBLISH_PAGE = `<!DOCTYPE html>
     var e = $('esito');
     e.textContent = msg;
     e.className = ok ? 'ok' : 'err';
+    e.style.display = msg ? 'block' : 'none';
+    if (msg) e.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   $('btnGenera').addEventListener('click', async function () {
@@ -1110,7 +1112,7 @@ const PUBLISH_PAGE = `<!DOCTYPE html>
 
     this.disabled = true;
     this.textContent = 'Generazione in corso…';
-    esito('', true); $('esito').style.display = 'none';
+    esito('', true);
 
     var fd = new FormData();
     fd.append('secret', $('secret').value);
