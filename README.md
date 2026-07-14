@@ -72,7 +72,6 @@ Il Worker gestisce tre responsabilità:
    | `SUPABASE_SERVICE_KEY` | Service role key di Supabase |
    | `STRIPE_SECRET_KEY` | `sk_live_...` da Stripe dashboard |
    | `STRIPE_WEBHOOK_SECRET` | `whsec_...` dopo aver configurato il webhook |
-   | `FB_PAGE_ACCESS_TOKEN` | Token pagina Facebook (per pubblicazione automatica) |
 
 4. Copia il Worker URL e in `assistente.html` sostituisci:
    ```js
@@ -141,13 +140,16 @@ Il Worker seleziona automaticamente il modello in base alla complessità:
 
 ---
 
-## Agente Facebook (Claude Code Routines)
+## Social (Facebook + Instagram)
 
-Un agente cloud gira ogni **lunedì alle 9:00** (ora Roma) e genera 5 post settimanali per la pagina Facebook di OndaMente, salvandoli su Google Drive nel documento **"OndaMente - Piano Editoriale Facebook"**.
+La pubblicazione social automatica (post quotidiano, story, approvazione,
+post manuali) è gestita dal worker dedicato **social-agent**
+(repo `social-agent`, area self-service su https://area.postivo.it) —
+questo worker non pubblica più sui social dal 2026-07-14.
 
-Gestisci la routine su: https://claude.ai/code/routines/trig_01LR2ZhRkWw3FVDsWFQioqBF
-
-Per abilitare la pubblicazione automatica su Facebook, configura il secret `FB_PAGE_ACCESS_TOKEN` nel Cloudflare Worker (vedi Step 2).
+Esiste inoltre una routine cloud (lunedì 9:00, ora Roma) che genera 5 bozze
+settimanali sul documento Google Drive "OndaMente - Piano Editoriale
+Facebook": https://claude.ai/code/routines/trig_01LR2ZhRkWw3FVDsWFQioqBF
 
 ---
 
