@@ -4,3 +4,7 @@ compatibility_date = "2024-11-01"
 
 # Niente cron: la pubblicazione social quotidiana è migrata al worker
 # "social-agent" (repo social-agent, https://area.postivo.it) dal 2026-07-14.
+# L'array vuoto è necessario: senza, wrangler lascerebbe attivo il trigger
+# esistente delle 7:00 UTC su un worker che non ha più l'handler scheduled.
+[triggers]
+crons = []
