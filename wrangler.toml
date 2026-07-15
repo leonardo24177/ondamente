@@ -2,9 +2,10 @@ name = "ondamente"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
-# Niente cron: la pubblicazione social quotidiana è migrata al worker
-# "social-agent" (repo social-agent, https://area.postivo.it) dal 2026-07-14.
-# L'array vuoto è necessario: senza, wrangler lascerebbe attivo il trigger
-# esistente delle 7:00 UTC su un worker che non ha più l'handler scheduled.
+# La pubblicazione social quotidiana è migrata al worker "social-agent"
+# (repo social-agent, https://area.postivo.it) dal 2026-07-14.
+# Cron residuo: ping giornaliero a Supabase per evitare l'auto-pause del
+# piano Free (sospensione dopo 7gg senza attività API) — vedi handler
+# `scheduled` in worker.js.
 [triggers]
-crons = []
+crons = ["0 5 * * *"]

@@ -69,6 +69,17 @@ export default {
 
     return new Response('Not found', { status: 404 });
   },
+
+  // Ping periodico a Supabase per evitare l'auto-pause del piano Free
+  // (progetto sospeso dopo 7gg senza attività API). Nessuna logica di
+  // business: una sola query leggera basta a resettare il timer.
+  async scheduled(event, env) {
+    const base = env.SUPABASE_URL;
+    const key  = env.SUPABASE_SERVICE_KEY;
+    await fetch(`${base}/rest/v1/profiles?select=id&limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+  },
 };
 
 // ════ CHECK SUBJECT LIMIT ═════════════════════════════════════════
