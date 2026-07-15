@@ -21,6 +21,14 @@ del repo social-agent.
 - **Pagina Facebook:** `https://www.facebook.com/profile.php?id=1151803171347006` — icona nel footer di tutte le pagine pubbliche. Quando disponibile, aggiornare con vanity URL.
 - **Instagram:** `@ondamente_dsa` (IG User ID: `17841417643234744`) — account Business collegato alla pagina FB, icona nel footer.
 
+## Supabase keep-alive (dal 2026-07-15)
+Il piano Free di Supabase sospende il progetto dopo 7gg senza attività API.
+Il cron FB rimosso il 2026-07-14 (migrazione a social-agent) teneva
+involontariamente vivo il DB — appena rimosso, Supabase ha ripreso a
+sospenderlo. Fix: handler `scheduled` in `worker.js` (query leggera su
+`profiles`) + cron `0 5 * * *` in `wrangler.toml`, solo per resettare il
+timer di inattività. Nessuna logica di business.
+
 ## Deploy
 - **Frontend:** push su `main` → GitHub Pages si aggiorna in automatico (~2 min CDN)
 - **Worker:** push di `worker.js` o `wrangler.toml` → GitHub Actions deploya su Cloudflare
