@@ -2,6 +2,9 @@ name = "ondamente"
 main = "worker.js"
 compatibility_date = "2024-11-01"
 
+[observability]
+enabled = true
+
 # La pubblicazione social quotidiana è migrata al worker "social-agent"
 # (repo social-agent, https://area.postivo.it) dal 2026-07-14.
 # Cron residuo: ping giornaliero a Supabase per evitare l'auto-pause del
